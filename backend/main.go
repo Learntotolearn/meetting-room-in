@@ -128,6 +128,12 @@ type UpdateSystemSettingsRequest struct {
 	AllowUserChangePassword bool `json:"allow_user_change_password"`
 }
 
+// 新增：管理员修改用户角色请求体
+type ChangeUserRoleRequest struct {
+	UserID uint   `json:"user_id" binding:"required"`
+	Role   string `json:"role" binding:"required"` // "admin" 或 "user"
+}
+
 // @title 会议室预订系统 API
 // @version 1.0
 // @description 用于会议室管理和预订的后端API
@@ -1017,6 +1023,38 @@ func getPublicSettingsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settings})
 }
 
+// @Summary 管理员修改用户角色
+// @Description 管理员修改指定用户的角色
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Param data body ChangeUserRoleRequest true "修改用户角色参数"
+// @Success 200 {object} map[string]interface{}
+// @Security Bearer
+// @Router /api/admin/user/role [put]
+func adminChangeUserRoleHandler(c *gin.Context) {
+	var req ChangeUserRoleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+	if req.Role != "admin" && req.Role != "user" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "角色无效"})
+		return
+	}
+	var user User
+	if err := db.First(&user, req.UserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+	user.Role = req.Role
+	if err := db.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "角色更新成功"})
+}
+
 func main() {
 	var err error
 	var dbPath string
@@ -1115,6 +1153,7 @@ func main() {
 		auth.PUT("/admin/user/password", AdminMiddleware(), adminChangeUserPasswordHandler)
 		auth.GET("/admin/settings", AdminMiddleware(), getSystemSettingsHandler)
 		auth.PUT("/admin/settings", AdminMiddleware(), updateSystemSettingsHandler)
+		auth.PUT("/admin/user/role", AdminMiddleware(), adminChangeUserRoleHandler)
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
