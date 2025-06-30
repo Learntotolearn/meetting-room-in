@@ -1,0 +1,370 @@
+definitions:
+  main.AddRoomRequest:
+    properties:
+      capacity:
+        type: integer
+      name:
+        type: string
+    required:
+    - capacity
+    - name
+    type: object
+  main.BookRoomRequest:
+    properties:
+      end_time:
+        type: string
+      room_id:
+        type: integer
+      start_time:
+        type: string
+    required:
+    - end_time
+    - room_id
+    - start_time
+    type: object
+  main.EditRoomRequest:
+    properties:
+      capacity:
+        type: integer
+      name:
+        type: string
+    type: object
+  main.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  main.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  main.SSORequest:
+    properties:
+      email:
+        type: string
+      nickname:
+        type: string
+      role:
+        description: '''admin'' or empty'
+        type: string
+    required:
+    - email
+    type: object
+  main.UpdateProfileRequest:
+    properties:
+      nickname:
+        type: string
+    required:
+    - nickname
+    type: object
+info:
+  contact: {}
+  description: 用于会议室管理和预订的后端API
+  title: 会议室预订系统 API
+  version: "1.0"
+paths:
+  /api/admin/bookings:
+    get:
+      description: 管理员查询所有用户的预订记录
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: (Admin) 查询所有预订
+      tags:
+      - 管理员
+  /api/auth/sso:
+    post:
+      consumes:
+      - application/json
+      description: 根据外部信息自动注册或登录用户
+      parameters:
+      - description: SSO参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.SSORequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 单点登录
+      tags:
+      - 用户
+  /api/bookings:
+    get:
+      description: 查询所有会议室的预订记录
+      parameters:
+      - description: 会议室ID
+        in: query
+        name: room_id
+        type: integer
+      - description: 开始时间(ISO8601)
+        in: query
+        name: start_time
+        type: string
+      - description: 结束时间(ISO8601)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 查询所有预订
+      tags:
+      - 预订
+    post:
+      consumes:
+      - application/json
+      description: 用户预订会议室
+      parameters:
+      - description: 预订参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.BookRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 预订会议室
+      tags:
+      - 预订
+  /api/bookings/{id}:
+    delete:
+      description: 取消指定ID的预订
+      parameters:
+      - description: 预订ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 取消预订
+      tags:
+      - 预订
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录，返回JWT
+      parameters:
+      - description: 登录参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 用户登录
+      tags:
+      - 用户
+  /api/mybookings:
+    get:
+      description: 查询当前用户的预订记录
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 查询个人预订
+      tags:
+      - 预订
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册，返回JWT
+      parameters:
+      - description: 注册参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 用户注册
+      tags:
+      - 用户
+  /api/rooms:
+    get:
+      description: 查询所有会议室
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 查询会议室列表
+      tags:
+      - 会议室
+    post:
+      consumes:
+      - application/json
+      description: 管理员添加会议室
+      parameters:
+      - description: 会议室参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.AddRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 添加会议室
+      tags:
+      - 会议室
+  /api/rooms/{id}:
+    delete:
+      description: 管理员删除会议室
+      parameters:
+      - description: 会议室ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 删除会议室
+      tags:
+      - 会议室
+    put:
+      consumes:
+      - application/json
+      description: 管理员编辑会议室
+      parameters:
+      - description: 会议室ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 编辑参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.EditRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 编辑会议室
+      tags:
+      - 会议室
+  /api/user/profile:
+    put:
+      consumes:
+      - application/json
+      description: 更新当前用户的昵称
+      parameters:
+      - description: 更新参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: 更新用户信息
+      tags:
+      - 用户
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

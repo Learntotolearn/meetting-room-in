@@ -1,0 +1,16 @@
+name: MeetingRoom
+
+title: 会议室预订系统
+
+description:
+  en: A simple meeting room booking system
+  zh: 一个简单的会议室预订系统
+
+menu_items:
+  - location: application
+    label:
+      en: Meeting Room
+      zh: 会议室预订
+    icon: ./logo.png
+    url: /apps/meeting-room/
+    auto_dark_theme: false
