@@ -14,7 +14,6 @@ import (
 	_ "metting-room-backend/docs"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/files"
-	"github.com/gin-contrib/cors"
 )
 
 type User struct {
@@ -1076,15 +1075,6 @@ func main() {
 	db.Where(User{Username: "admin"}).FirstOrCreate(&admin, User{Username: "admin", Password: "admin", Role: "admin"})
 
 	r := gin.Default()
-
-	// 启用 CORS 跨域中间件，允许所有来源和常用方法
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Token", "Language", "Accept-Language", "X-Forwarded-Proto", "X-Forwarded-Host", "Accept", "Cache-Control", "X-Requested-With", "X-Xsrf-Token"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}))
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
