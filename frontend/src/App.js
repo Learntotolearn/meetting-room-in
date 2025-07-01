@@ -426,8 +426,63 @@ function RoomBookingPage({ rooms }) {
     <div className="room-scroll-box" ref={cardRef}>
       <div className="room-scroll-content">
         <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: -3 }} />
-        <h2 style={{ marginBottom: 4 }}>{room.name}</h2>
-        <div className="room-capacity">容纳{room.capacity}人</div>
+        <div className="room-header-bar" style={{ width: '100%', padding: '18px 0 10px 0' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            gap: 24,
+            flexDirection: 'row',
+          }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: 6,
+              minWidth: 0,
+              flex: 1
+            }}>
+              <h2 style={{
+                margin: 0,
+                fontSize: 18,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                lineHeight: 1.3,
+                minWidth: 0,
+                maxWidth: '220px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>{room.name}</h2>
+              <div className="room-capacity" style={{
+                margin: 0,
+                fontSize: 13,
+                color: '#bbb',
+                lineHeight: 1.2
+              }}>
+                容纳{room.capacity}人
+              </div>
+            </div>
+            <Button
+              type="primary"
+              className="booking-float-btn"
+              style={{
+                marginLeft: 32,
+                minWidth: 110,
+                maxWidth: 300,
+                height: 40,
+                fontSize: 17,
+                borderRadius: 14,
+              }}
+              onClick={handleBook}
+              disabled={selectedSlots.length === 0 || booking}
+              loading={booking}
+            >
+              预订
+            </Button>
+          </div>
+        </div>
         <Tabs
           className="date-selector-tabs"
           activeKey={selectedDateKey}
@@ -472,19 +527,6 @@ function RoomBookingPage({ rooms }) {
             )
           }))}
         />
-        <div style={{ height: 35 }} />
-      </div>
-      <div className="booking-float-bar" ref={floatBarRef}>
-        <Button
-          type="primary"
-          className="booking-float-btn"
-          block
-          onClick={handleBook}
-          disabled={selectedSlots.length === 0 || booking}
-          loading={booking}
-        >
-          预订
-        </Button>
       </div>
     </div>
   );
