@@ -459,7 +459,11 @@ function RoomBookingPage({ rooms }) {
                 margin: 0,
                 fontSize: 13,
                 color: '#bbb',
-                lineHeight: 1.2
+                lineHeight: 1.2,
+                maxWidth: '220px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}>
                 容纳{room.capacity}人
               </div>
