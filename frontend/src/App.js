@@ -1,6 +1,6 @@
 // 导入 UI 组件和图标
 import { Button, Form, Input, message, Layout, Menu, Table, Modal, InputNumber, DatePicker, Select, Space, Card, Tabs, Row, Col, Dropdown, Avatar, Switch } from 'antd';
-import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined, CustomerServiceOutlined } from '@ant-design/icons';
 
 // 导入日期相关库
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
@@ -23,11 +23,16 @@ import './App.css';
 // import favicon from './assets/favicon.ico';
 
 // 导入 React 相关库
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 // 设置 moment 语言
 moment.locale('zh-cn');
+
+// 检测是否被嵌入，若是则加body类
+if (typeof window !== 'undefined' && window !== window.parent) {
+  document.body.classList.add('embedded-mode');
+}
 
 const { Header, Content } = Layout;
 const { RangePicker } = DatePicker;
@@ -288,6 +293,8 @@ function RoomBookingPage({ rooms }) {
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [booking, setBooking] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
+  const cardRef = useRef();
+  const floatBarRef = useRef();
 
   const room = rooms && rooms.length > 0 ? rooms.find(r => String(r.id) === roomId) : undefined;
 
@@ -305,6 +312,29 @@ function RoomBookingPage({ rooms }) {
     });
     setSelectedSlots([]);
   }, [room, selectedDateKey]);
+
+  useEffect(() => {
+    function syncFloatBar() {
+      if (!cardRef.current || !floatBarRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      if (window.innerWidth <= 700) {
+        floatBarRef.current.style.width = '100vw';
+        floatBarRef.current.style.left = '0';
+        floatBarRef.current.style.transform = 'none';
+      } else {
+        floatBarRef.current.style.width = rect.width + 'px';
+        floatBarRef.current.style.left = rect.left + 'px';
+        floatBarRef.current.style.transform = 'none';
+      }
+    }
+    requestAnimationFrame(syncFloatBar);
+    window.addEventListener('resize', syncFloatBar);
+    window.addEventListener('scroll', syncFloatBar);
+    return () => {
+      window.removeEventListener('resize', syncFloatBar);
+      window.removeEventListener('scroll', syncFloatBar);
+    };
+  }, []);
 
   if (!rooms || rooms.length === 0) {
     return <div style={{ padding: 32, textAlign: 'center' }}>加载中...</div>;
@@ -393,11 +423,11 @@ function RoomBookingPage({ rooms }) {
   };
 
   return (
-    <div className="room-scroll-box">
+    <div className="room-scroll-box" ref={cardRef}>
       <div className="room-scroll-content">
-        <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: 16 }} />
-        <h2 style={{ marginBottom: 8 }}>{room.name}</h2>
-        <div style={{ color: '#888', marginBottom: 16 }}>容纳{room.capacity}人</div>
+        <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: -3 }} />
+        <h2 style={{ marginBottom: 4 }}>{room.name}</h2>
+        <div className="room-capacity">容纳{room.capacity}人</div>
         <Tabs
           className="date-selector-tabs"
           activeKey={selectedDateKey}
@@ -442,7 +472,17 @@ function RoomBookingPage({ rooms }) {
             )
           }))}
         />
-        <Button type="primary" block onClick={handleBook} disabled={selectedSlots.length === 0 || booking} loading={booking} style={{ marginTop: 16 }}>
+        <div style={{ height: 35 }} />
+      </div>
+      <div className="booking-float-bar" ref={floatBarRef}>
+        <Button
+          type="primary"
+          className="booking-float-btn"
+          block
+          onClick={handleBook}
+          disabled={selectedSlots.length === 0 || booking}
+          loading={booking}
+        >
           预订
         </Button>
       </div>

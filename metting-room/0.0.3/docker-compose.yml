@@ -8,7 +8,7 @@ services:
     restart: always
 
   frontend:
-    image: 1300775666/meeting-room-frontend-dootask:0.0.2
+    image: 1300775666/meeting-room-frontend-dootask:0.0.3
     container_name: meeting-room-frontend
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
