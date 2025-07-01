@@ -12,5 +12,5 @@ menu_items:
       en: Meeting Room
       zh: 会议室预订
     icon: ./logo.png
-    url: /apps/meeting-room/
+    url: apps/meeting-room/
     auto_dark_theme: false

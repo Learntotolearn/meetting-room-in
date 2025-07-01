@@ -284,14 +284,33 @@ function RoomList({ rooms = [] }) {
 
 function RoomBookingPage({ rooms }) {
   const { roomId } = useParams();
-  const room = rooms.find(r => String(r.id) === roomId);
   const [selectedDateKey, setSelectedDateKey] = useState(moment().format('YYYY-MM-DD'));
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [booking, setBooking] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
-  
-  const selectedDate = moment(selectedDateKey);
 
+  const room = rooms && rooms.length > 0 ? rooms.find(r => String(r.id) === roomId) : undefined;
+
+  // useEffect 必须始终调用
+  const selectedDate = moment(selectedDateKey);
+  useEffect(() => {
+    if (!room) return;
+    api.get(`/api/bookings?room_id=${room.id}&start_time=${selectedDate.toISOString().slice(0,10)}T00:00:00&end_time=${selectedDate.toISOString().slice(0,10)}T23:59:59`, {
+      headers: { Authorization: localStorage.getItem('token') }
+    }).then(res => {
+      setBookedSlots(res.data.bookings.map(b => ({
+        start: moment(b.start_time),
+        end: moment(b.end_time)
+      })));
+    });
+    setSelectedSlots([]);
+  }, [room, selectedDateKey]);
+
+  if (!rooms || rooms.length === 0) {
+    return <div style={{ padding: 32, textAlign: 'center' }}>加载中...</div>;
+  }
+  if (!room) return <div style={{padding: 32}}>会议室不存在</div>;
+  
   const getDayLabel = (day) => {
     const isToday = moment().isSame(day, 'day');
     const dayOfWeek = isToday ? '今天' : day.format('ddd');
@@ -306,20 +325,6 @@ function RoomBookingPage({ rooms }) {
 
   // 支持未来30天
   const days = Array.from({ length: 30 }, (_, i) => moment().startOf('day').add(i, 'days'));
-
-  // 获取已预约时间段
-  useEffect(() => {
-    if (!room) return;
-    api.get(`/api/bookings?room_id=${room.id}&start_time=${selectedDate.toISOString().slice(0,10)}T00:00:00&end_time=${selectedDate.toISOString().slice(0,10)}T23:59:59`, {
-      headers: { Authorization: localStorage.getItem('token') }
-    }).then(res => {
-      setBookedSlots(res.data.bookings.map(b => ({
-        start: moment(b.start_time),
-        end: moment(b.end_time)
-      })));
-    });
-    setSelectedSlots([]);
-  }, [room, selectedDateKey]);
 
   function getTimeSlots(start = '06:00', end = '24:00') {
     const slots = [];
@@ -387,60 +392,60 @@ function RoomBookingPage({ rooms }) {
     }
   };
 
-  if (!room) return <div style={{padding: 32}}>会议室不存在</div>;
-
   return (
-    <div style={{ maxWidth: 600, margin: '32px auto', background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: 24 }}>
-      <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: 16 }} />
-      <h2 style={{ marginBottom: 8 }}>{room.name}</h2>
-      <div style={{ color: '#888', marginBottom: 16 }}>容纳{room.capacity}人</div>
-      <Tabs
-        className="date-selector-tabs"
-        activeKey={selectedDateKey}
-        onChange={key => { setSelectedDateKey(key); }}
-        items={days.map(day => ({
-          key: day.format('YYYY-MM-DD'),
-          label: getDayLabel(day),
-          children: (
-            <Row gutter={[8, 8]}>
-              {getTimeSlots().map(slot => {
-                const booked = isSlotBooked(slot);
-                const selected = isSlotSelected(slot);
-                return (
-                  <Col span={8} key={slot.label}>
-                    <Button
-                      block
-                      type={selected ? 'primary' : 'default'}
-                      disabled={booked}
-                      onClick={() => {
-                        if (booked) return;
-                        if (selected) {
-                          setSelectedSlots(selectedSlots.filter(s => s.label !== slot.label));
-                        } else {
-                          setSelectedSlots([...selectedSlots, slot].sort((a, b) => a.start - b.start));
-                        }
-                      }}
-                      style={{ marginBottom: 8 }}
-                    >
-                      {slot.label}
-                    </Button>
-                  </Col>
-                );
-              })}
-            </Row>
-          )
-        }))}
-      />
-      <Button
-        type="primary"
-        block
-        disabled={selectedSlots.length === 0}
-        loading={booking}
-        onClick={handleBook}
-        style={{ marginTop: 12 }}
-      >
-        预订
-      </Button>
+    <div className="room-scroll-box">
+      <div className="room-scroll-content">
+        <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: 16 }} />
+        <h2 style={{ marginBottom: 8 }}>{room.name}</h2>
+        <div style={{ color: '#888', marginBottom: 16 }}>容纳{room.capacity}人</div>
+        <Tabs
+          className="date-selector-tabs"
+          activeKey={selectedDateKey}
+          onChange={key => { setSelectedDateKey(key); }}
+          items={days.map(day => ({
+            key: day.format('YYYY-MM-DD'),
+            label: getDayLabel(day),
+            children: (
+              <Row gutter={[8, 8]}>
+                {getTimeSlots().map(slot => {
+                  const booked = isSlotBooked(slot);
+                  const selected = isSlotSelected(slot);
+                  return (
+                    <Col span={8} key={slot.label}>
+                      <Button
+                        block
+                        type={selected ? 'primary' : 'default'}
+                        disabled={booked}
+                        onClick={() => {
+                          if (booked) return;
+                          if (selected) {
+                            setSelectedSlots(selectedSlots.filter(s => s.label !== slot.label));
+                          } else {
+                            setSelectedSlots([...selectedSlots, slot].sort((a, b) => a.start - b.start));
+                          }
+                        }}
+                        style={{
+                          marginBottom: 10,
+                          borderRadius: 12,
+                          boxShadow: selected ? '0 2px 8px #1677ff33' : 'none',
+                          borderColor: booked ? '#eee' : undefined,
+                          background: booked ? '#f5f5f5' : undefined,
+                          color: booked ? '#bbb' : undefined,
+                        }}
+                      >
+                        {slot.label}
+                      </Button>
+                    </Col>
+                  );
+                })}
+              </Row>
+            )
+          }))}
+        />
+        <Button type="primary" block onClick={handleBook} disabled={selectedSlots.length === 0 || booking} loading={booking} style={{ marginTop: 16 }}>
+          预订
+        </Button>
+      </div>
     </div>
   );
 }

@@ -311,3 +311,103 @@
 .date-selector-tabs .ant-tabs-nav-more {
   display: none !important;
 }
+
+/* 移除html, body的overflow: hidden，避免移动端内容区高度被卡死 */
+html, body {
+  height: auto !important;
+  overflow: auto !important;
+}
+
+.ant-layout,
+.ant-layout-content {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.room-scroll-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 32px auto;
+  background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
+  border-radius: 22px;
+  box-shadow: 0 6px 32px rgba(22,119,255,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
+  padding: 0;
+  transition: box-shadow 0.2s;
+  margin-bottom: 0;
+}
+
+.room-scroll-content {
+  flex: 1 1 auto;
+  padding: 32px 32px 80px 32px;
+  scrollbar-width: thin;
+  scrollbar-color: #e0e7ef #f8fafc;
+}
+.room-scroll-content::-webkit-scrollbar {
+  width: 6px;
+  background: #f8fafc;
+}
+.room-scroll-content::-webkit-scrollbar-thumb {
+  background: #e0e7ef;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.room-scroll-content:hover::-webkit-scrollbar-thumb {
+  background: #b3c6e2;
+}
+.room-scroll-content h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #222;
+}
+.room-scroll-content > img {
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(22,119,255,0.06);
+}
+.room-scroll-content .ant-tabs {
+  margin-bottom: 18px;
+}
+.room-scroll-content .ant-btn {
+  border-radius: 12px !important;
+  font-size: 15px;
+  margin-bottom: 10px;
+  height: 40px;
+}
+.room-book-btn-bar {
+  flex-shrink: 0;
+  padding: 16px 24px 16px 24px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+.room-book-btn-bar .ant-btn {
+  height: 48px;
+  font-size: 18px;
+  border-radius: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+@media (max-width: 700px) {
+  .room-scroll-box {
+    max-width: 99vw;
+    margin: 6px auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(22,119,255,0.06);
+  }
+  .room-scroll-content, .room-book-btn-bar {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .room-scroll-content {
+    padding-top: 16px;
+    padding-bottom: 64px;
+  }
+  .room-book-btn-bar {
+    padding-top: 4px;
+    padding-bottom: 10px;
+  }
+}

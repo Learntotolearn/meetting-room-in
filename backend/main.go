@@ -14,6 +14,7 @@ import (
 	_ "metting-room-backend/docs"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/files"
+	"github.com/gin-contrib/cors"
 )
 
 type User struct {
@@ -1076,6 +1077,18 @@ func main() {
 
 	r := gin.Default()
 
+	// 只在开发环境启用 CORS
+	if os.Getenv("GIN_MODE") != "release" {
+		r.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge: 12 * time.Hour,
+		}))
+	}
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
@@ -1148,5 +1161,5 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Run(":80")
+	r.Run(":8015")
 } 
