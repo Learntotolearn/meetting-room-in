@@ -665,3 +665,169 @@ html, body {
     margin-left: 6px;
   }
 }
+
+/* 嵌入模式下内容区、表格、Tabs等自适应宽度，防止溢出 */
+.embedded-mode .ant-layout-content,
+.embedded-mode .ant-table,
+.embedded-mode .ant-tabs,
+.embedded-mode .ant-tabs-content-holder,
+.embedded-mode .ant-table-content {
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* 嵌入模式下Header自适应 */
+.embedded-mode .ant-layout-header {
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* 嵌入模式下表格字体缩小，列更紧凑 */
+.embedded-mode .ant-table {
+  font-size: 13px !important;
+}
+
+/* 嵌入模式下Tabs内容区自适应 */
+.embedded-mode .ant-tabs-content-holder {
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+}
+
+/* 嵌入模式下整体padding缩小，适配小屏 */
+@media (max-width: 700px) {
+  .embedded-mode .ant-layout-content {
+    padding: 4px !important;
+  }
+  .embedded-mode .room-scroll-box {
+    margin: 0 !important;
+    border-radius: 10px !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* 嵌入模式下整体背景、卡片、阴影、圆角适配 */
+.embedded-mode body,
+.embedded-mode .ant-layout,
+.embedded-mode .ant-layout-content {
+  background: #fff !important;
+}
+.embedded-mode .room-scroll-box {
+  box-shadow: 0 2px 12px rgba(22,119,255,0.06), 0 1px 4px rgba(0,0,0,0.03) !important;
+  border-radius: 14px !important;
+  border: none !important;
+  margin: 0 auto !important;
+  background: #fff !important;
+}
+.embedded-mode .room-scroll-content {
+  padding: 18px 8px 8px 8px !important;
+  border-radius: 0 0 14px 14px !important;
+  background: #fff !important;
+}
+.embedded-mode .room-scroll-content > img {
+  border-radius: 14px 14px 0 0 !important;
+}
+.embedded-mode .ant-tabs-nav,
+.embedded-mode .ant-tabs-content-holder {
+  background: #fff !important;
+  border-radius: 10px !important;
+}
+.embedded-mode .ant-table {
+  background: #fff !important;
+  border-radius: 10px !important;
+}
+.embedded-mode .ant-table-content {
+  background: #fff !important;
+}
+/* 嵌入模式下去除多余外边距和滚动条 */
+.embedded-mode .ant-layout-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.embedded-mode .ant-layout {
+  background: #fff !important;
+  min-height: 100vh !important;
+}
+
+/* 只在内容溢出时显示横向滚动条，并美化滚动条 */
+.embedded-mode .ant-table-content,
+.embedded-mode .ant-tabs-content-holder {
+  overflow-x: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #fff;
+}
+.embedded-mode .ant-table-content::-webkit-scrollbar,
+.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar {
+  height: 6px;
+  background: #fff;
+}
+.embedded-mode .ant-table-content::-webkit-scrollbar-thumb,
+.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+/* 嵌入模式下卡片最大高度限制，顶部和底部留白，避免卡片贴底 */
+.embedded-mode .room-scroll-box {
+  max-height: 90vh !important;
+  margin-top: 4vh !important;
+  margin-bottom: 4vh !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.embedded-mode .room-scroll-content {
+  overflow-y: auto !important;
+  flex: 1 1 0;
+}
+
+/* 嵌入模式下兼容主站风格的适配优化 */
+.embedded-mode .room-scroll-box {
+  max-height: 90vh;
+  margin-top: 3vh;
+  margin-bottom: 3vh;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(22,119,255,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
+}
+.embedded-mode .room-scroll-content {
+  overflow-y: auto;
+  flex: 1 1 0;
+  padding: 20px 12px 12px 12px;
+}
+.embedded-mode .ant-table-content,
+.embedded-mode .ant-tabs-content-holder {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #fff;
+}
+.embedded-mode .ant-table-content::-webkit-scrollbar,
+.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar {
+  height: 6px;
+  background: #fff;
+}
+.embedded-mode .ant-table-content::-webkit-scrollbar-thumb,
+.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+.embedded-mode .room-scroll-box,
+.embedded-mode .room-scroll-content,
+.embedded-mode .ant-table,
+.embedded-mode .ant-tabs-content-holder {
+  background: #fff;
+}
+@media (max-width: 700px) {
+  .embedded-mode .room-scroll-box {
+    max-width: 100vw;
+    border-radius: 10px;
+    margin: 0;
+  }
+  .embedded-mode .room-scroll-content {
+    padding: 10px 2px 6px 2px;
+  }
+}

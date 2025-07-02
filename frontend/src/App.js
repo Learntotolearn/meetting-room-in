@@ -473,8 +473,8 @@ function RoomBookingPage({ rooms }) {
               className="booking-float-btn"
               style={{
                 marginLeft: 32,
-                minWidth: 110,
-                maxWidth: 300,
+                minWidth: 100,
+                maxWidth: 200,
                 height: 40,
                 fontSize: 17,
                 borderRadius: 14,
