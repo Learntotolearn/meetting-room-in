@@ -219,7 +219,6 @@ func registerHandler(c *gin.Context) {
 	user := User{
 		Username: req.Username,
 		Password: req.Password,
-		Role:     "user", // 默认角色为普通用户
 		Nickname: req.Username, // 默认昵称和用户名相同
 	}
 	

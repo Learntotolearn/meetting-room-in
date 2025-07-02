@@ -9,7 +9,7 @@ import { format, parseISO, startOfWeek, getDay } from 'date-fns';
 import moment from 'moment';
 
 // 导入工具和配置
-import { getUserInfo, closeApp } from '@dootask/tools';
+import { getUserInfo, closeApp, isMicroApp } from '@dootask/tools';
 import api from './config';
 
 // 导入样式
@@ -30,7 +30,7 @@ import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router
 moment.locale('zh-cn');
 
 // 检测是否被嵌入，若是则加body类
-if (typeof window !== 'undefined' && window !== window.parent) {
+if (typeof window !== 'undefined' && isMicroApp && isMicroApp()) {
   document.body.classList.add('embedded-mode');
 }
 
@@ -54,6 +54,29 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 // 判断是否为嵌入模式
 const isEmbedded = typeof window !== 'undefined' && window !== window.parent;
 
+// 自动修正微前端外层容器高度和滚动（定时+MutationObserver双保险）
+if (typeof window !== 'undefined' && window.document) {
+  const fixMicroAppScroll = () => {
+    const microApp = document.querySelector('micro-app');
+    const microAppBody = document.querySelector('micro-app-body');
+    if (microApp) {
+      microApp.style.height = '100vh';
+      microApp.style.overflow = 'auto';
+    }
+    if (microAppBody) {
+      microAppBody.style.height = '100vh';
+      microAppBody.style.overflow = 'auto';
+    }
+  };
+  // 初次执行
+  fixMicroAppScroll();
+  // 监听 DOM 变化
+  const observer = new MutationObserver(fixMicroAppScroll);
+  observer.observe(document.body, { childList: true, subtree: true });
+  // 定时反复修正，防止主站覆盖
+  setInterval(fixMicroAppScroll, 1000);
+}
+
 function Login({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [loginForm] = Form.useForm();
@@ -72,7 +95,8 @@ function Login({ onLogin }) {
 
   const onRegisterFinish = async (values) => {
     try {
-      const res = await api.post('/api/register', values);
+      const { username, password } = values;
+      const res = await api.post('/api/register', { username, password });
       localStorage.setItem('token', res.data.token);
       message.success('注册成功');
       onLogin();
@@ -269,7 +293,7 @@ function RoomManage({ isAdmin, rooms, fetchRooms, loading }) {
   );
 }
 
-function RoomList({ rooms = [] }) {
+function RoomList({ rooms = [], roomsLoading }) {
   const navigate = useNavigate();
   return (
     <Row gutter={[24, 24]} justify="center">
@@ -342,7 +366,7 @@ function RoomBookingPage({ rooms }) {
   }, []);
 
   if (!rooms || rooms.length === 0) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>加载中...</div>;
+    return null;
   }
   if (!room) return <div style={{padding: 32}}>会议室不存在</div>;
   
@@ -701,7 +725,7 @@ function ProfilePage({ user, onProfileUpdate }) {
     }
   };
 
-  if (!user) return <div style={{padding: 32}}>加载中...</div>;
+  if (!user) return null;
 
   return (
     <div style={{ maxWidth: 500, margin: '32px auto', background: '#fff', padding: '24px', borderRadius: 8 }}>
@@ -1046,7 +1070,8 @@ function App() {
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user || info);
       setIsLogin(true);
-      fetchRooms();
+      // 新增：自动登录后，立刻拉取用户信息
+      await checkLoginStatus();
     } catch (error) {
       console.error('SSO登录失败:', error);
       setIsLogin(false);
@@ -1080,8 +1105,24 @@ function App() {
     setUser(updatedUser);
   };
 
-  if (loading) {
-    return <div style={{padding: 64, textAlign: 'center'}}><h2>加载中...</h2></div>;
+  // 只要 user 变化且不为 null，就拉取会议室
+  useEffect(() => {
+    if (user) {
+      fetchRooms();
+    }
+  }, [user]);
+
+  // 新增：每30秒自动刷新会议室数据
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(() => {
+      fetchRooms();
+    }, 30000); // 30秒
+    return () => clearInterval(timer);
+  }, [user]);
+
+  if (loading || !user) {
+    return null;
   }
 
   if (!isLogin) {
@@ -1182,7 +1223,7 @@ function App() {
       </Header>
       <Content style={{ padding: '24px' }}>
         <Routes>
-          <Route path="/" element={<RoomList rooms={rooms} />} />
+          <Route path="/" element={<RoomList rooms={rooms} roomsLoading={roomsLoading} />} />
           <Route path="/booking/:roomId" element={<RoomBookingPage rooms={rooms} />} />
           <Route path="/mybookings" element={<MyBookings rooms={rooms} fetchRooms={fetchRooms} />} />
           <Route path="/profile" element={<ProfilePage user={user} onProfileUpdate={handleProfileUpdate} />} />

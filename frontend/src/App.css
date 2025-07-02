@@ -123,7 +123,8 @@
     font-size: 18px;
   }
   .ant-layout-header {
-    padding: 0 4px !important;
+    padding-top: constant(safe-area-inset-top, 20px) !important;
+    padding-top: env(safe-area-inset-top, 20px) !important;
   }
   .ant-layout-content {
     padding: 8px !important;
@@ -159,7 +160,9 @@
 }
 
 /* Header美化 */
-.ant-layout-header {
+.ant-layout-header,
+.embedded-mode .ant-layout-header,
+body.embedded-mode .ant-layout-header {
   background: #001529;
   height: 56px !important;
   line-height: 56px !important;
@@ -167,6 +170,8 @@
   display: flex;
   align-items: center;
   padding: 0 0 0 16px !important;
+  padding-top: constant(safe-area-inset-top, 20px) !important;
+  padding-top: env(safe-area-inset-top, 20px) !important;
 }
 
 /* 菜单与右侧按钮分隔 */
@@ -204,10 +209,11 @@
 }
 
 @media (max-width: 600px) {
-  .ant-layout-header {
-    height: 48px !important;
-    line-height: 48px !important;
-    padding-left: 4px !important;
+  .ant-layout-header,
+  .embedded-mode .ant-layout-header,
+  body.embedded-mode .ant-layout-header {
+    padding-top: constant(safe-area-inset-top, 20px) !important;
+    padding-top: env(safe-area-inset-top, 20px) !important;
   }
   .header-actions {
     margin-right: 8px;
@@ -337,9 +343,19 @@ html, body {
   border: 1.5px solid #f2f4f8;
 }
 
-.room-scroll-content {
-  padding: 32px 24px 32px 24px;
-  padding-bottom: 1px !important;
+.room-scroll-content,
+.embedded-mode .room-scroll-content {
+  box-sizing: border-box;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 32px !important;
+}
+
+.room-scroll-content .ant-row,
+.embedded-mode .room-scroll-content .ant-row {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 .room-scroll-content h2 {
@@ -751,10 +767,25 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   box-shadow: none !important;
-}
-.embedded-mode .ant-layout {
   background: #fff !important;
   min-height: 100vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.embedded-mode .ant-layout {
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #fff !important;
+}
+.embedded-mode .ant-layout-content {
+  flex: 1 1 0%;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  background: #fff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 /* 嵌入模式下内容区滚动条仅在滚动时显示 */
@@ -865,7 +896,7 @@ html, body {
 
 /* 嵌入模式下，会议室管理表格顶部留白、圆角、阴影优化 */
 .embedded-mode .ant-table-wrapper {
-  margin-top: 32px !important;
+  margin-top: 24px !important;
 }
 .embedded-mode .ant-table {
   border-radius: 12px;
@@ -957,5 +988,36 @@ html, body {
 @media (max-width: 700px) {
   .embedded-mode .room-scroll-content .ant-btn {
     padding: 0 0px;
+  }
+}
+
+/* ===== 微前端嵌入模式终极滚动修复 ===== */
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  overflow: auto;
+}
+.embedded-mode .ant-layout {
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #fff !important;
+}
+.embedded-mode .ant-layout-content {
+  flex: 1 1 0%;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  background: #fff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 700px) {
+  .ant-layout-content {
+    max-height: calc(100vh - 56px); /* 56px为Header高度，如有不同请调整 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
   }
 }
