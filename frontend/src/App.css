@@ -366,11 +366,11 @@ html, body {
   justify-content: center;
 }
 
-.room-scroll-content .ant-btn {
-  min-width: 90px;
+.room-scroll-content .ant-btn,
+.embedded-mode .room-scroll-content .ant-btn {
+  min-width: 88px;
   width: 100%;
-  max-width: 120px;
-  padding: 0 6px;
+  padding: 0 4px;
   border-radius: 10px !important;
   font-size: 13px;
   margin-bottom: 0;
@@ -401,14 +401,16 @@ html, body {
   border: 1.5px solid #f0f0f0 !important;
 }
 
-/* 移除.embedded-mode .room-scroll-box的全屏样式 */
-/* 只保留内容区滚动适配 */
+/* 保证嵌入模式下卡片居中、留白、圆角、阴影 */
 .embedded-mode .room-scroll-box {
-  height: 100vh;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  max-width: 500px;
+  margin: 32px auto !important;
+  border-radius: 22px !important;
+  box-shadow: 0 4px 24px rgba(22,119,255,0.08), 0 1.5px 6px rgba(0,0,0,0.04) !important;
+  background: #fff !important;
+  border: 1.5px solid #f2f4f8 !important;
 }
+
 .embedded-mode .room-scroll-content {
   flex: 1 1 0;
   min-height: 0;
@@ -416,6 +418,7 @@ html, body {
   padding: 32px 32px 20px 32px;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  width: 99%;
 }
 @media (max-width: 700px) {
   .embedded-mode .room-scroll-content {
@@ -489,7 +492,7 @@ html, body {
     font-size: 14px;
     height: 32px;
     border-radius: 8px !important;
-    padding: 0 2px;
+    padding: 0 0px;
     margin-bottom: 0;
     box-sizing: border-box;
   }
@@ -754,73 +757,87 @@ html, body {
   min-height: 100vh !important;
 }
 
-/* 只在内容溢出时显示横向滚动条，并美化滚动条 */
-.embedded-mode .ant-table-content,
+/* 嵌入模式下内容区滚动条仅在滚动时显示 */
+.embedded-mode .room-scroll-content,
 .embedded-mode .ant-tabs-content-holder {
-  overflow-x: auto !important;
   scrollbar-width: thin;
   scrollbar-color: #d1d5db #fff;
-}
-.embedded-mode .ant-table-content::-webkit-scrollbar,
-.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar {
-  height: 6px;
-  background: #fff;
-}
-.embedded-mode .ant-table-content::-webkit-scrollbar-thumb,
-.embedded-mode .ant-tabs-content-holder::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-/* 嵌入模式下卡片最大高度限制，顶部和底部留白，避免卡片贴底 */
-.embedded-mode .room-scroll-box {
-  max-height: 90vh !important;
-  margin-top: 4vh !important;
-  margin-bottom: 4vh !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-.embedded-mode .room-scroll-content {
-  overflow-y: auto !important;
-  flex: 1 1 0;
-}
-
-/* 嵌入模式下兼容主站风格的适配优化 */
-.embedded-mode .room-scroll-box {
-  max-height: 90vh;
-  margin-top: 3vh;
-  margin-bottom: 3vh;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(22,119,255,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
-}
-.embedded-mode .room-scroll-content {
+  /* 仅在滚动时显示滚动条 */
   overflow-y: auto;
-  flex: 1 1 0;
-  padding: 20px 12px 12px 12px;
 }
-.embedded-mode .ant-table-content,
-.embedded-mode .ant-tabs-content-holder {
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #fff;
-}
-.embedded-mode .ant-table-content::-webkit-scrollbar,
+.embedded-mode .room-scroll-content::-webkit-scrollbar,
 .embedded-mode .ant-tabs-content-holder::-webkit-scrollbar {
-  height: 6px;
+  width: 7px;
+  background: transparent;
+}
+.embedded-mode .room-scroll-content:hover::-webkit-scrollbar,
+.embedded-mode .ant-tabs-content-holder:hover::-webkit-scrollbar {
   background: #fff;
 }
-.embedded-mode .ant-table-content::-webkit-scrollbar-thumb,
+.embedded-mode .room-scroll-content::-webkit-scrollbar-thumb,
 .embedded-mode .ant-tabs-content-holder::-webkit-scrollbar-thumb {
   background: #d1d5db;
-  border-radius: 3px;
+  border-radius: 4px;
+  transition: background 0.2s;
 }
+.embedded-mode .room-scroll-content:not(:hover)::-webkit-scrollbar-thumb,
+.embedded-mode .ant-tabs-content-holder:not(:hover)::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* ====== 嵌入模式下样式兼容主站风格，只在小屏/溢出时适配 ====== */
+
+/* 1. 只在嵌入+小屏时，room-scroll-box高度和留白适配 */
+@media (max-width: 900px), (max-height: 700px) {
+  .embedded-mode .room-scroll-box {
+    max-height: 90vh;
+    margin-top: 3vh;
+    margin-bottom: 3vh;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(22,119,255,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
+  }
+  .embedded-mode .room-scroll-content {
+    padding: 12px 6px 8px 6px;
+  }
+}
+
+/* 2. 只在嵌入+小屏时，表格、Tabs横向滚动条美化 */
+@media (max-width: 900px) {
+  .embedded-mode .ant-table-content,
+  .embedded-mode .ant-tabs-content-holder {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #fff;
+  }
+  .embedded-mode .ant-table-content::-webkit-scrollbar,
+  .embedded-mode .ant-tabs-content-holder::-webkit-scrollbar {
+    height: 6px;
+    background: #fff;
+  }
+  .embedded-mode .ant-table-content::-webkit-scrollbar-thumb,
+  .embedded-mode .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+}
+
+/* 3. 注释/删除全局覆盖主站风格的嵌入样式（如背景、圆角、阴影、padding、margin等的!important） */
+/*
+.embedded-mode .ant-layout,
+.embedded-mode .ant-layout-content,
 .embedded-mode .room-scroll-box,
 .embedded-mode .room-scroll-content,
 .embedded-mode .ant-table,
 .embedded-mode .ant-tabs-content-holder {
-  background: #fff;
+  background: #fff !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
+*/
+
+/* 4. 移动端嵌入进一步收紧圆角和padding */
 @media (max-width: 700px) {
   .embedded-mode .room-scroll-box {
     max-width: 100vw;
@@ -828,6 +845,117 @@ html, body {
     margin: 0;
   }
   .embedded-mode .room-scroll-content {
-    padding: 10px 2px 6px 2px;
+    padding: 8px 2px 4px 2px;
+  }
+}
+
+/* 嵌入模式下，会议室卡片顶部与标题栏保持间距 */
+@media (max-width: 900px), (max-height: 700px) {
+  .embedded-mode .room-scroll-box,
+  .embedded-mode .ant-card {
+    margin-top: 32px !important;
+  }
+}
+
+/* 宽屏下也适当留白 */
+.embedded-mode .room-scroll-box,
+.embedded-mode .ant-card {
+  margin-top: 32px !important;
+}
+
+/* 嵌入模式下，会议室管理表格顶部留白、圆角、阴影优化 */
+.embedded-mode .ant-table-wrapper {
+  margin-top: 32px !important;
+}
+.embedded-mode .ant-table {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(22,119,255,0.06), 0 1.5px 6px rgba(0,0,0,0.03);
+  background: #fff;
+}
+
+/* 小屏下表格横向滚动条美化 */
+@media (max-width: 900px) {
+  .embedded-mode .ant-table-content {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #fff;
+  }
+  .embedded-mode .ant-table-content::-webkit-scrollbar {
+    height: 6px;
+    background: #fff;
+  }
+  .embedded-mode .ant-table-content::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+}
+
+/* 嵌入模式下，让添加会议室按钮整体下移20px */
+.embedded-mode .ant-space {
+  margin-top: 18px !important;
+  margin-bottom: 18px !important;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+}
+.embedded-mode .ant-space .ant-btn {
+  margin-left: 0 !important;
+}
+@media (max-width: 900px) {
+  .embedded-mode .ant-space {
+    margin-top: 18px !important;
+    padding-left: 16px;
+  }
+  .embedded-mode .ant-space .ant-btn {
+    width: fit-content;
+    min-width: 120px;
+  }
+}
+
+/* 嵌入模式下移动端表格，限制操作列最大宽度，优化按钮间距和字体 */
+@media (max-width: 700px) {
+  .embedded-mode .ant-table-cell:last-child {
+    max-width: 155px;
+    min-width: 60px;
+    width: 1%;
+    white-space: nowrap;
+  }
+  .embedded-mode .ant-table-cell:last-child .ant-btn {
+    font-size: 13px;
+    padding: 0 8px;
+    margin: 0 2px;
+    min-width: 44px;
+  }
+  /* 表格内容自动换行，防止被压缩 */
+  .embedded-mode .ant-table-cell {
+    white-space: normal;
+    word-break: break-all;
+  }
+}
+
+/* 嵌入模式下去除底部横杠（滚动条上方的灰色横线） */
+.embedded-mode .ant-tabs-content-holder,
+.embedded-mode .room-scroll-content {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* 时间选择区域不显示任何滚动条（主站和微前端都生效） */
+.ant-tabs-content,
+.ant-tabs-content-holder,
+.room-scroll-content {
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  /* 隐藏所有滚动条 */
+}
+
+.embedded-mode .room-scroll-content .ant-btn {
+  min-width: 88px;
+  width: 100%;
+  padding: 0 4px;
+}
+@media (max-width: 700px) {
+  .embedded-mode .room-scroll-content .ant-btn {
+    padding: 0 0px;
   }
 }

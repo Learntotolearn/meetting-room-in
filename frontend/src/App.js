@@ -1,6 +1,6 @@
 // 导入 UI 组件和图标
 import { Button, Form, Input, message, Layout, Menu, Table, Modal, InputNumber, DatePicker, Select, Space, Card, Tabs, Row, Col, Dropdown, Avatar, Switch } from 'antd';
-import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined, CustomerServiceOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined, CustomerServiceOutlined, CloseOutlined } from '@ant-design/icons';
 
 // 导入日期相关库
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
@@ -9,7 +9,7 @@ import { format, parseISO, startOfWeek, getDay } from 'date-fns';
 import moment from 'moment';
 
 // 导入工具和配置
-import { getUserInfo } from '@dootask/tools';
+import { getUserInfo, closeApp } from '@dootask/tools';
 import api from './config';
 
 // 导入样式
@@ -48,6 +48,11 @@ const setFavicon = () => {
   link.href = '/favicon.ico';
   document.getElementsByTagName('head')[0].appendChild(link);
 };
+
+// 判断是否为移动端
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+// 判断是否为嵌入模式
+const isEmbedded = typeof window !== 'undefined' && window !== window.parent;
 
 function Login({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -495,7 +500,7 @@ function RoomBookingPage({ rooms }) {
             key: day.format('YYYY-MM-DD'),
             label: getDayLabel(day),
             children: (
-              <Row gutter={[8, 8]}>
+              <Row gutter={[4, 8]}>
                 {getTimeSlots().map(slot => {
                   const booked = isSlotBooked(slot);
                   const selected = isSlotSelected(slot);
@@ -1153,7 +1158,8 @@ function App() {
             }] : []),
           ]}
         />
-        <div style={{ marginRight: 25 }}>
+        <div style={{ marginRight: 25, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* 先渲染头像，再渲染关闭按钮 */}
           <Dropdown menu={{ items: profileMenuItems }} placement="bottomRight">
             <a onClick={e => e.preventDefault()} style={{ color: 'rgba(255, 255, 255, 0.85)', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
               <Avatar size="small" icon={<UserOutlined />} style={{ marginRight: -5 }} />
@@ -1162,6 +1168,16 @@ function App() {
               </span>
             </a>
           </Dropdown>
+          {/* 只在移动端+嵌入时显示关闭按钮 */}
+          {isMobile && isEmbedded && (
+            <Button
+              type="text"
+              icon={<CloseOutlined style={{ fontSize: 18 }} />}
+              onClick={closeApp}
+              style={{ color: '#fff', background: 'transparent', border: 'none', marginRight: -17 }}
+              title="关闭"
+            />
+          )}
         </div>
       </Header>
       <Content style={{ padding: '24px' }}>
