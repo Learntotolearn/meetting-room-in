@@ -220,6 +220,7 @@ func registerHandler(c *gin.Context) {
 		Username: req.Username,
 		Password: req.Password,
 		Nickname: req.Username, // 默认昵称和用户名相同
+		Role:     "user",      // 新增：注册用户默认角色为user
 	}
 	
 	if err := db.Create(&user).Error; err != nil {

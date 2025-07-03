@@ -11,3 +11,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@media (max-width: 700px) {
+  /* 只隐藏主菜单栏的文字，不影响overflow抽屉 */
+  .ant-menu-root > .ant-menu-item .ant-menu-title-content {
+    display: none !important;
+  }
+}

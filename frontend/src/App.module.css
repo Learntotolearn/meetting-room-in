@@ -1,0 +1,280 @@
+.antLayout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.antLayoutContent {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 34px;
+}
+
+.userNickname {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .userNickname {
+    display: none;
+  }
+  /* 隐藏主菜单栏的文字，只显示图标 */
+  .ant-menu-item .ant-menu-title-content {
+    display: none;
+  }
+  .roomScrollBox {
+    max-width: 100vw;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0 0 16px 0;
+    padding-top: 1px !important;
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+  }
+  .dateSelectorTabs {
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+  }
+  .ant-btn {
+    margin-left: 2px;
+    margin-right: 2px;
+    font-size: 15px;
+    height: 36px;
+    border-radius: 12px;
+    padding: 0 10px;
+  }
+  .bookingFloatBtn {
+    min-width: 120px;
+    max-width: 100%;
+    height: 38px;
+    font-size: 17px;
+    border-radius: 14px;
+    padding: 0 12px;
+    margin-right: 8px;
+  }
+  .roomHeaderBar {
+    padding: 4px 10px 6px 10px;
+  }
+  body, .roomScrollBox, .ant-btn, .dateSelectorTabs {
+    font-size: 15px;
+  }
+  .roomTitle {
+    font-size: 16px;
+    max-width: 55vw;
+  }
+  .roomHeaderBarRow {
+    margin-top: 2px;
+    gap: 6px;
+  }
+  .roomCapacity {
+    font-size: 12px;
+    max-width: 120px;
+  }
+  .timeSlotBtn {
+    min-width: 44px;
+    max-width: 60px;
+    font-size: 12px;
+    height: 28px;
+    padding: 0 2px;
+    margin: 0 1px 4px 1px;
+  }
+  .roomImage {
+    width: calc(100% - 8px) !important;
+    margin: 8px 4px 0 4px !important;
+    height: 140px !important;
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+    max-width: 100% !important;
+    display: block !important;
+    background: #fff;
+  }
+}
+
+.loginContainer {
+  max-width: 400px;
+  margin: 60px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px #0001;
+  padding: 40px 32px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.loginHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.loginLogo {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 16px;
+}
+.loginTitle {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+.loginForm {
+  width: 100%;
+}
+/* 会议室列表 */
+.roomScrollBox {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #0001;
+  padding: 24px 24px 32px 24px;
+  padding-top: 16px;
+}
+/* 会议室列表的响应式 */
+@media (max-width: 1000px) {
+  .roomScrollBox {
+    max-width: 100vw;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+/* 预订按钮 */
+.bookingFloatBtn {
+  min-width: 170px;
+  max-width: 400%;
+  height: 42px;
+  font-size: 20px;
+  border-radius: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px #1677ff22;
+  padding: 0 48px;
+}
+
+/* 日期选择器中的日期 */
+.dateSelectorDayOfMonth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+}
+
+.roomTitle {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  min-width: 0;
+  max-width: 70vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roomHeaderBarRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+  gap: 12px;
+}
+.roomCapacity {
+  color: #040404;
+  font-size: 15px;
+  line-height: 1.3;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roomHeaderBar {
+  width: 100%;
+  padding: 1px 6px;
+}
+
+.timeSlotBtn {
+  min-width: 100px;
+  max-width: 180px;
+  padding: 0 4px;
+  font-size: 13px;
+  border-radius: 10px;
+  height: 32px;
+  margin: 0 2px 6px 2px;
+  white-space: nowrap;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roomImage {
+  width: calc(100% - 1px);
+  margin: 0 0px 0 0px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  max-width: 100%;
+}
+
+.roomCardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 2px;
+}
+.roomCardTitle {
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.roomCardCapacity {
+  color: #bbb;
+  font-size: 13px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.roomCardTip {
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-align: left;
+}
+@media (max-width: 700px) {
+  .roomCardTitleRow {
+    font-size: 14px;
+    margin-bottom: 4px;
+    margin-top: 0;
+  }
+  .roomCardTip {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}

@@ -15,7 +15,7 @@ import api from './config';
 // 导入样式
 import 'moment/locale/zh-cn';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './App.css';
+import styles from './App.module.css';
 
 // 导入图片资源
 // import logo512Image from './assets/logo512.png';
@@ -112,10 +112,10 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-header">
-        <img src="/logo192.png" alt="Logo" className="login-logo" />
-        <h1 className="login-title">会议室预订系统</h1>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginHeader}>
+        <img src="/logo192.png" alt="Logo" className={styles.loginLogo} />
+        <h1 className={styles.loginTitle}>会议室预订系统</h1>
       </div>
       
       {isLogin ? (
@@ -123,7 +123,7 @@ function Login({ onLogin }) {
           form={loginForm}
           name="loginForm"
           onFinish={onLoginFinish}
-          className="login-form"
+          className={styles.loginForm}
         >
           <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]} hasFeedback>
             <Input prefix={<UserOutlined />} placeholder="用户名" />
@@ -134,7 +134,7 @@ function Login({ onLogin }) {
           <Form.Item>
             <Button type="primary" htmlType="submit" block>登录</Button>
           </Form.Item>
-          <div className="login-switch">
+          <div className={styles.loginSwitch}>
             <span>还没有账号？</span>
             <Button type="link" onClick={switchMode} style={{ padding: 0, height: 'auto' }}>
               立即注册
@@ -146,7 +146,7 @@ function Login({ onLogin }) {
           form={registerForm}
           name="registerForm"
           onFinish={onRegisterFinish}
-          className="login-form"
+          className={styles.loginForm}
         >
           <Form.Item 
             name="username" 
@@ -190,7 +190,7 @@ function Login({ onLogin }) {
           <Form.Item>
             <Button type="primary" htmlType="submit" block>注册</Button>
           </Form.Item>
-          <div className="login-switch">
+          <div className={styles.loginSwitch}>
             <span>已有账号？</span>
             <Button type="link" onClick={switchMode} style={{ padding: 0, height: 'auto' }}>
               立即登录
@@ -274,7 +274,9 @@ function RoomManage({ isAdmin, rooms, fetchRooms, loading }) {
       <Space style={{ marginBottom: 16 }}>
         {isAdmin && <Button type="primary" icon={<SettingOutlined />} onClick={() => setModalOpen(true)}>添加会议室</Button>}
       </Space>
-      <Table dataSource={rooms} rowKey="id" columns={columns} pagination={false} loading={loading} />
+      <div style={{ overflowX: 'auto' }}>
+        <Table dataSource={rooms} rowKey="id" columns={columns} pagination={false} loading={loading} scroll={{ x: 'max-content' }} />
+      </div>
       <Modal title="添加会议室" open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} destroyOnHidden>
         <Form form={form} name="addRoomForm" onFinish={onAddRoom} layout="vertical">
           <Form.Item name="name" label="会议室名称" rules={[{ required: true, message: '请输入会议室名称' }]} hasFeedback><Input /></Form.Item>
@@ -303,7 +305,7 @@ function RoomList({ rooms = [], roomsLoading }) {
             hoverable
             title={<span style={{ fontWeight: 600 }}>{room.name}</span>}
             extra={<span>容纳{room.capacity}人</span>}
-            cover={<img alt="会议室" src="/meeting-room.jpg" style={{ height: 200, objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />}
+            cover={<img alt="会议室" src="/meeting-room.jpg" className={styles.roomImage} />}
             style={{ minHeight: 320, maxHeight: 360, maxWidth: 350, width: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column', margin: '0 auto' }}
             styles={{ body: { padding: 16, flex: 1, overflow: 'auto' } }}
             onClick={() => navigate(`/booking/${room.id}`)}
@@ -376,8 +378,8 @@ function RoomBookingPage({ rooms }) {
     const dayOfMonth = day.format('D');
     return (
       <div>
-        <div className="date-selector-day-of-week">{dayOfWeek}</div>
-        <div className="date-selector-day-of-month">{dayOfMonth}</div>
+        <div className={styles.dateSelectorDayOfWeek}>{dayOfWeek}</div>
+        <div className={styles.dateSelectorDayOfMonth}>{dayOfMonth}</div>
       </div>
     );
   };
@@ -452,62 +454,22 @@ function RoomBookingPage({ rooms }) {
   };
 
   return (
-    <div className="room-scroll-box" ref={cardRef}>
-      <div className="room-scroll-content">
-        <img src="/meeting-room.jpg" alt="会议室" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 12, marginBottom: -3 }} />
-        <div className="room-header-bar" style={{ width: '100%', padding: '18px 0 10px 0' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            gap: 24,
-            flexDirection: 'row',
-          }}>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: 6,
-              minWidth: 0,
-              flex: 1
-            }}>
-              <h2 style={{
-                margin: 0,
-                fontSize: 18,
-                fontWeight: 700,
-                letterSpacing: 0.5,
-                lineHeight: 1.3,
-                minWidth: 0,
-                maxWidth: '220px',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>{room.name}</h2>
-              <div className="room-capacity" style={{
-                margin: 0,
-                fontSize: 13,
-                color: '#bbb',
-                lineHeight: 1.2,
-                maxWidth: '220px',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-                容纳{room.capacity}人
-              </div>
-            </div>
+    <div className={styles.roomScrollBox} ref={cardRef}>
+      <div className={styles.roomScrollContent}>
+        <img src="/meeting-room.jpg" alt="会议室" className={styles.roomImage} />
+        <div className={styles.roomHeaderBar}>
+          <h2
+            className={styles.roomTitle}
+            title={room.name}
+          >
+            {room.name}
+          </h2>
+          <div className={styles.roomHeaderBarRow}>
+            <div className={styles.roomCapacity}>{`容纳${room.capacity}人`}</div>
             <Button
               type="primary"
-              className="booking-float-btn"
-              style={{
-                marginLeft: 32,
-                minWidth: 100,
-                maxWidth: 200,
-                height: 40,
-                fontSize: 17,
-                borderRadius: 14,
-              }}
+              className={styles.bookingFloatBtn}
+              style={{ marginLeft: 'auto' }}
               onClick={handleBook}
               disabled={selectedSlots.length === 0 || booking}
               loading={booking}
@@ -517,7 +479,7 @@ function RoomBookingPage({ rooms }) {
           </div>
         </div>
         <Tabs
-          className="date-selector-tabs"
+          className={styles.dateSelectorTabs}
           activeKey={selectedDateKey}
           onChange={key => { setSelectedDateKey(key); }}
           items={days.map(day => ({
@@ -531,6 +493,7 @@ function RoomBookingPage({ rooms }) {
                   return (
                     <Col span={8} key={slot.label}>
                       <Button
+                        className={styles.timeSlotBtn}
                         block
                         type={selected ? 'primary' : 'default'}
                         disabled={booked}
@@ -543,7 +506,6 @@ function RoomBookingPage({ rooms }) {
                           }
                         }}
                         style={{
-                          marginBottom: 10,
                           borderRadius: 12,
                           boxShadow: selected ? '0 2px 8px #1677ff33' : 'none',
                           borderColor: booked ? '#eee' : undefined,
@@ -604,8 +566,8 @@ function MyBookings({ rooms, fetchRooms }) {
         loading={loading}
         columns={[
           { title: '会议室', dataIndex: 'room_id', render: id => rooms.find(r => r.id === id)?.name || id },
-          { title: '开始时间', dataIndex: 'start_time', render: t => new Date(t).toLocaleString() },
-          { title: '结束时间', dataIndex: 'end_time', render: t => new Date(t).toLocaleString() },
+          { title: '开始时间', dataIndex: 'start_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
+          { title: '结束时间', dataIndex: 'end_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
           { title: '操作', dataIndex: 'id', render: (id, record) =>
             new Date(record.start_time) > new Date() ?
               <Button danger size="small" onClick={() => onCancel(id)} loading={cancelingId === id}>取消</Button>
@@ -641,8 +603,8 @@ function BookingManage() {
   const columns = [
     { title: '会议室', dataIndex: 'room_name', key: 'room_name', filters: [...new Set(bookings.map(b => b.room_name))].map(name => ({ text: name, value: name })), onFilter: (value, record) => record.room_name === value },
     { title: '预订人', dataIndex: 'username', key: 'username' },
-    { title: '开始时间', dataIndex: 'start_time', render: t => new Date(t).toLocaleString(), defaultSortOrder: 'descend', sorter: (a, b) => new Date(a.start_time) - new Date(b.start_time) },
-    { title: '结束时间', dataIndex: 'end_time', render: t => new Date(t).toLocaleString() },
+    { title: '开始时间', dataIndex: 'start_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '', defaultSortOrder: 'descend', sorter: (a, b) => new Date(a.start_time) - new Date(b.start_time) },
+    { title: '结束时间', dataIndex: 'end_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
   ];
 
   return (
@@ -949,13 +911,16 @@ function SystemSettingsPage() {
 
       <div>
         <h3 style={{marginBottom: 16}}>用户管理</h3>
-        <Table
-          dataSource={users}
-          columns={userColumns}
-          rowKey="id"
-          loading={usersLoading}
-          pagination={false}
-        />
+        <div style={{ overflowX: 'auto' }}>
+          <Table
+            dataSource={users}
+            columns={userColumns}
+            rowKey="id"
+            loading={usersLoading}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+          />
+        </div>
       </div>
 
       <Modal
@@ -1056,6 +1021,7 @@ function App() {
   // 自动登录逻辑
   const handleAutoLogin = async () => {
     if (!info?.email) {
+      setIsLogin(false);
       setLoading(false);
       return;
     }
@@ -1070,8 +1036,8 @@ function App() {
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user || info);
       setIsLogin(true);
-      // 新增：自动登录后，立刻拉取用户信息
       await checkLoginStatus();
+      fetchRooms();
     } catch (error) {
       console.error('SSO登录失败:', error);
       setIsLogin(false);
@@ -1112,16 +1078,7 @@ function App() {
     }
   }, [user]);
 
-  // 新增：每30秒自动刷新会议室数据
-  useEffect(() => {
-    if (!user) return;
-    const timer = setInterval(() => {
-      fetchRooms();
-    }, 30000); // 30秒
-    return () => clearInterval(timer);
-  }, [user]);
-
-  if (loading || !user) {
+  if (loading) {
     return null;
   }
 
@@ -1159,24 +1116,16 @@ function App() {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-        <div className="logo" style={{ display: 'flex', alignItems: 'center', color: 'white', height: '100%' }}>
+    <Layout className={styles.antLayout} style={{ minHeight: '100vh' }}>
+      <Header className={styles.antLayoutHeader} style={{ display: 'flex', alignItems: 'center', padding: '0 24px', width: '100%', minWidth: 0, overflowX: 'auto', whiteSpace: 'nowrap', background: '#001529' }}>
+        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', color: 'white', height: '100%' }}>
           <img src="/logo192.png" alt="logo" style={{ height: 32 }}/>
         </div>
         <Menu
           theme="dark"
           mode="horizontal"
           selectedKeys={[currentKey]}
-          onClick={e => {
-            // 只负责跳转
-            if (e.key === 'booking') navigate('/');
-            else if (e.key === 'mybookings') navigate('/mybookings');
-            else if (e.key === 'manage') navigate('/manage');
-            else if (e.key === 'booking_manage') navigate('/booking-manage');
-            else if (e.key === 'system_settings') navigate('/system-settings');
-          }}
-          style={{ flex: 1, minWidth: 0, borderBottom: 'none', marginLeft: '24px', background: 'transparent' }}
+          style={{ flex: 1, minWidth: 0, borderBottom: 'none', marginLeft: '24px', background: 'transparent', width: '100%', overflowX: 'auto', whiteSpace: 'nowrap' }}
           items={[
             {
               key: 'booking',
@@ -1198,18 +1147,23 @@ function App() {
               label: '系统设置',
             }] : []),
           ]}
+          onClick={e => {
+            if (e.key === 'booking') navigate('/');
+            else if (e.key === 'mybookings') navigate('/mybookings');
+            else if (e.key === 'manage') navigate('/manage');
+            else if (e.key === 'booking_manage') navigate('/booking-manage');
+            else if (e.key === 'system_settings') navigate('/system-settings');
+          }}
         />
-        <div style={{ marginRight: 25, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* 先渲染头像，再渲染关闭按钮 */}
+        <div className={styles.headerActions}>
           <Dropdown menu={{ items: profileMenuItems }} placement="bottomRight">
             <a onClick={e => e.preventDefault()} style={{ color: 'rgba(255, 255, 255, 0.85)', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
-              <Avatar size="small" icon={<UserOutlined />} style={{ marginRight: -5 }} />
-              <span className="user-nickname">
+              <Avatar size="small" icon={<UserOutlined />} />
+              <span className={styles.userNickname}>
                 {user?.nickname || user?.username}
               </span>
             </a>
           </Dropdown>
-          {/* 只在移动端+嵌入时显示关闭按钮 */}
           {isMobile && isEmbedded && (
             <Button
               type="text"
@@ -1221,7 +1175,7 @@ function App() {
           )}
         </div>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content className={styles.antLayoutContent} style={{ padding: '24px' }}>
         <Routes>
           <Route path="/" element={<RoomList rooms={rooms} roomsLoading={roomsLoading} />} />
           <Route path="/booking/:roomId" element={<RoomBookingPage rooms={rooms} />} />
