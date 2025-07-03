@@ -314,8 +314,8 @@ func ssoHandler(c *gin.Context) {
 		}
 	}
 	
-	// 打印当前解析到的role，便于调试
-	log.Printf("SSO解析到的role: %s", role)
+	// // 打印当前解析到的role，便于调试
+	// log.Printf("SSO解析到的role: %s", role)
 
 	var user User
 	err := db.Where("username = ?", req.Email).First(&user).Error
@@ -343,16 +343,12 @@ func ssoHandler(c *gin.Context) {
 			return
 		}
 	} else {
-		// 用户存在，更新昵称
+		// 用户存在，只同步昵称，不再覆盖角色
 		if req.Nickname != "" && user.Nickname != req.Nickname {
 			user.Nickname = req.Nickname
 			db.Save(&user)
 		}
-		// 用户存在，检查角色是否需要同步（无论升级还是降级）
-		if user.Role != role {
-			user.Role = role
-			db.Save(&user)
-		}
+		// 不再覆盖 user.Role
 	}
 
 	// 为用户生成JWT
@@ -394,10 +390,18 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		// 只信任 user_id
 		c.Set("user_id", claims.UserID)
-		c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
-		c.Set("nickname", claims.Nickname)
+		// 实时查数据库获取最新用户信息
+		var user User
+		if err := db.First(&user, claims.UserID).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "用户不存在"})
+			c.Abort()
+			return
+		}
+		c.Set("username", user.Username)
+		c.Set("role", user.Role)
+		c.Set("nickname", user.Nickname)
 		c.Next()
 	}
 }
@@ -1161,5 +1165,5 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Run(":8015")
+	r.Run(":80")
 } 

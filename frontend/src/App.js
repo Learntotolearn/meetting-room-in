@@ -1026,11 +1026,10 @@ function App() {
       return;
     }
     try {
-      // 只传递 email、nickname、identity，不自动设置 role
+      // 只传递 email、nickname，不再传递 identity
       const ssoData = {
         email: info.email,
-        nickname: info.nickname || info.email,
-        identity: info.identity || []
+        nickname: info.nickname || info.email
       };
       const res = await api.post('/api/auth/sso', ssoData);
       localStorage.setItem('token', res.data.token);
