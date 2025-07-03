@@ -1,5 +1,5 @@
 // 导入 UI 组件和图标
-import { Button, Form, Input, message, Layout, Menu, Table, Modal, InputNumber, DatePicker, Select, Space, Card, Tabs, Row, Col, Dropdown, Avatar, Switch } from 'antd';
+import { Button, Form, Input, message, Layout, Menu, Table, Modal, InputNumber, DatePicker, Select, Space, Card, Tabs, Row, Col, Dropdown, Avatar, Switch, Spin } from 'antd';
 import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined, CustomerServiceOutlined, CloseOutlined } from '@ant-design/icons';
 
 // 导入日期相关库
@@ -297,6 +297,12 @@ function RoomManage({ isAdmin, rooms, fetchRooms, loading }) {
 
 function RoomList({ rooms = [], roomsLoading }) {
   const navigate = useNavigate();
+  if (roomsLoading) {
+    return <div style={{textAlign:'center',padding:'60px 0'}}><Spin size="large" tip="加载会议室..." /></div>;
+  }
+  if (!rooms || rooms.length === 0) {
+    return <div style={{textAlign:'center',padding:'60px 0',color:'#aaa'}}>暂无会议室</div>;
+  }
   return (
     <Row gutter={[24, 24]} justify="center">
       {rooms.map(room => (
@@ -1077,8 +1083,9 @@ function App() {
     }
   }, [user]);
 
+  // 优化渲染逻辑，先判断 loading，再判断 isLogin
   if (loading) {
-    return null;
+    return <div style={{textAlign:'center',padding:'60px 0'}}><Spin size="large" tip="加载中..." /></div>;
   }
 
   if (!isLogin) {
@@ -1183,6 +1190,7 @@ function App() {
           <Route path="/manage" element={user?.role === 'admin' ? <RoomManage isAdmin={true} rooms={rooms} fetchRooms={fetchRooms} loading={roomsLoading} /> : <div>无权限</div>} />
           <Route path="/booking-manage" element={user?.role === 'admin' ? <BookingManage /> : <div>无权限</div>} />
           <Route path="/system-settings" element={user?.role === 'admin' ? <SystemSettingsPage /> : <div>无权限</div>} />
+          <Route path="*" element={<RoomList rooms={rooms} roomsLoading={roomsLoading} />} />
         </Routes>
       </Content>
     </Layout>
