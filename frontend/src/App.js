@@ -25,6 +25,8 @@ import styles from './App.module.css';
 // 导入 React 相关库
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 // 设置 moment 语言
 moment.locale('zh-cn');
@@ -330,6 +332,7 @@ function RoomBookingPage({ rooms }) {
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [booking, setBooking] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [reason, setReason] = useState('');
   const cardRef = useRef();
   const floatBarRef = useRef();
 
@@ -421,6 +424,10 @@ function RoomBookingPage({ rooms }) {
 
   const handleBook = async () => {
     if (!room || selectedSlots.length === 0) return;
+    if (!reason.trim()) {
+      message.error('请填写申请理由');
+      return;
+    }
     // 检查是否连续
     const sorted = [...selectedSlots].sort((a, b) => a.start - b.start);
     let isContinuous = true;
@@ -440,9 +447,11 @@ function RoomBookingPage({ rooms }) {
         room_id: room.id,
         start_time: sorted[0].start.toISOString(),
         end_time: sorted[sorted.length-1].end.toISOString(),
+        reason,
       }, { headers: { Authorization: localStorage.getItem('token') } });
       message.success('预订成功');
       setSelectedSlots([]);
+      setReason('');
       // 重新拉取已预约时间段
       api.get(`/api/bookings?room_id=${room.id}&start_time=${selectedDate.toISOString().slice(0,10)}T00:00:00&end_time=${selectedDate.toISOString().slice(0,10)}T23:59:59`, {
         headers: { Authorization: localStorage.getItem('token') }
@@ -472,16 +481,6 @@ function RoomBookingPage({ rooms }) {
           </h2>
           <div className={styles.roomHeaderBarRow}>
             <div className={styles.roomCapacity}>{`容纳${room.capacity}人`}</div>
-            <Button
-              type="primary"
-              className={styles.bookingFloatBtn}
-              style={{ marginLeft: 'auto' }}
-              onClick={handleBook}
-              disabled={selectedSlots.length === 0 || booking}
-              loading={booking}
-            >
-              预订
-            </Button>
           </div>
         </div>
         <Tabs
@@ -492,7 +491,7 @@ function RoomBookingPage({ rooms }) {
             key: day.format('YYYY-MM-DD'),
             label: getDayLabel(day),
             children: (
-              <Row gutter={[4, 8]}>
+              <Row gutter={[4, 8]} className={styles.timeSlotRow}>
                 {getTimeSlots().map(slot => {
                   const booked = isSlotBooked(slot);
                   const selected = isSlotSelected(slot);
@@ -528,6 +527,28 @@ function RoomBookingPage({ rooms }) {
             )
           }))}
         />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 24 }}>
+          <Input.TextArea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="请输入申请会议室的理由"
+            rows={3}
+            maxLength={200}
+            style={{ width: '100%', maxWidth: 400, marginBottom: 16, background: '#fafafa', boxSizing: 'border-box', padding: 8, marginLeft: 0, marginRight: 0 }}
+            disabled={booking}
+            className="mobile-reason-textarea"
+          />
+          <Button
+            type="primary"
+            className={styles.bookingFloatBtn}
+            onClick={handleBook}
+            disabled={selectedSlots.length === 0 || booking}
+            loading={booking}
+            style={{ width: 200, marginBottom: 24 }}
+          >
+            预订
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -541,7 +562,9 @@ function MyBookings({ rooms, fetchRooms }) {
   const fetchMyBookings = async () => {
     setLoading(true);
     const res = await api.get('/api/mybookings', { headers: { Authorization: localStorage.getItem('token') } });
-    setBookings(res.data.bookings);
+    // 按开始时间倒序排列
+    const sorted = [...res.data.bookings].sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+    setBookings(sorted);
     setLoading(false);
   };
   useEffect(() => { fetchMyBookings(); }, []);
@@ -574,6 +597,7 @@ function MyBookings({ rooms, fetchRooms }) {
           { title: '会议室', dataIndex: 'room_id', render: id => rooms.find(r => r.id === id)?.name || id },
           { title: '开始时间', dataIndex: 'start_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
           { title: '结束时间', dataIndex: 'end_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
+          { title: '申请理由', dataIndex: 'reason', key: 'reason', ellipsis: true },
           { title: '操作', dataIndex: 'id', render: (id, record) =>
             new Date(record.start_time) > new Date() ?
               <Button danger size="small" onClick={() => onCancel(id)} loading={cancelingId === id}>取消</Button>
@@ -611,11 +635,32 @@ function BookingManage() {
     { title: '预订人', dataIndex: 'username', key: 'username' },
     { title: '开始时间', dataIndex: 'start_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '', defaultSortOrder: 'descend', sorter: (a, b) => new Date(a.start_time) - new Date(b.start_time) },
     { title: '结束时间', dataIndex: 'end_time', render: t => t ? moment(t).format('YYYY/M/D HH:mm') : '' },
+    { title: '申请理由', dataIndex: 'reason', key: 'reason', ellipsis: true },
   ];
+
+  // 导出Excel
+  const handleExport = () => {
+    // 只导出表格可见列
+    const exportData = bookings.map(row => ({
+      '会议室': row.room_name,
+      '预订人': row.username,
+      '开始时间': moment(row.start_time).format('YYYY/M/D HH:mm'),
+      '结束时间': moment(row.end_time).format('YYYY/M/D HH:mm'),
+      '申请理由': row.reason,
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '预订记录');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saveAs(new Blob([wbout], { type: 'application/octet-stream' }), `预订记录_${moment().format('YYYYMMDD_HHmmss')}.xlsx`);
+  };
 
   return (
     <div style={{ background: '#fff', padding: 24, borderRadius: 8 }}>
-      <h2 style={{marginBottom: 16}}>所有预订记录</h2>
+      <h2 style={{marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <span>所有预订记录</span>
+        <Button type="primary" onClick={handleExport}>导出数据</Button>
+      </h2>
       <div style={{ overflowX: 'auto' }}>
         <Table
           dataSource={bookings}

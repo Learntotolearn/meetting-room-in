@@ -45,9 +45,11 @@
     overflow: hidden !important;
   }
   .dateSelectorTabs {
-    margin-left: 8px;
-    margin-right: 8px;
-    margin-bottom: 4px;
+    margin-left: 4px;
+    margin-right: 5px;
+    margin-bottom: 2px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
   .ant-btn {
     margin-left: 2px;
@@ -68,11 +70,13 @@
   }
   .roomHeaderBar {
     padding: 4px 10px 6px 10px;
+    padding-left: 15px;
   }
   body, .roomScrollBox, .ant-btn, .dateSelectorTabs {
     font-size: 15px;
   }
   .roomTitle {
+    padding-left: 5px !important;
     font-size: 16px;
     max-width: 55vw;
   }
@@ -81,8 +85,10 @@
     gap: 6px;
   }
   .roomCapacity {
+    padding-left: 3px;
     font-size: 12px;
     max-width: 120px;
+    margin-left: 5px;
   }
   .timeSlotBtn {
     min-width: 44px;
@@ -94,10 +100,10 @@
   }
   .roomImage {
     width: 100% !important;
-    margin: 0 0 0 0 !important;
-    height: 140px !important;
+    margin: 17px 7px -10px 13px  !important;
+    height: 195px !important;
     border-radius: 16px !important;
-    max-width: 100% !important;
+    max-width: 96% !important;
     display: block !important;
     background: #fff;
   }
@@ -108,6 +114,13 @@
   .ant-card-cover {
     border-radius: 16px !important;
     overflow: hidden !important;
+  }
+  :global(.mobile-reason-textarea) {
+    width: calc(100vw - 8px) !important;
+    max-width: 80vw !important;
+    margin-left: 13px !important;
+    margin-right: 13px !important;
+    box-sizing: border-box;
   }
 }
 
@@ -144,7 +157,7 @@
 /* 会议室列表 */
 .roomScrollBox {
   max-width: 700px;
-  margin: 40px auto;
+  margin: -1px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px #0001;
@@ -153,7 +166,7 @@
   overflow: hidden;
 }
 /* 会议室列表的响应式 */
-@media (max-width: 1000px) {
+@media (max-width: 700px) {
   .roomScrollBox {
     max-width: 100vw;
     margin: 0;
@@ -189,7 +202,7 @@
   letter-spacing: 0.5px;
   line-height: 1.3;
   min-width: 0;
-  max-width: 70vw;
+  max-width: 80vw;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -292,4 +305,11 @@
 
 :where(.ant-card) .ant-card-cover > * {
   border-radius: 16px !important;
+}
+
+/* 居中时间按钮的容器 */
+.timeSlotRow {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
 }

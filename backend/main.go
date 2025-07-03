@@ -43,6 +43,7 @@ type Booking struct {
 	UserID    uint      `json:"user_id"`
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
+	Reason    string    `json:"reason"`
 }
 
 var db *gorm.DB
@@ -87,6 +88,7 @@ type BookRoomRequest struct {
 	RoomID    uint      `json:"room_id" binding:"required"`
 	StartTime time.Time `json:"start_time" binding:"required"`
 	EndTime   time.Time `json:"end_time" binding:"required"`
+	Reason    string    `json:"reason"`
 }
 
 // 编辑会议室请求体
@@ -109,6 +111,7 @@ type BookingDetail struct {
 	EndTime   time.Time `json:"end_time"`
 	Username  string    `json:"username"`
 	RoomName  string    `json:"room_name"`
+	Reason    string    `json:"reason"`
 }
 
 // 修改密码请求体
@@ -508,6 +511,7 @@ func bookRoomHandler(c *gin.Context) {
 		UserID:    userID,
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
+		Reason:    req.Reason,
 	}
 	if err := db.Create(&booking).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "预订失败"})
@@ -655,6 +659,7 @@ func listAllBookingsHandler(c *gin.Context) {
 			EndTime:   b.EndTime,
 			Username:  displayName,
 			RoomName:  room.Name,
+			Reason:    b.Reason,
 		})
 	}
 
