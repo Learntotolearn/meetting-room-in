@@ -61,7 +61,7 @@ npm run build
 
 ## Nginx 部署示例
 
-1. 后端服务监听 8080 端口，前端静态文件放到 Nginx 静态目录
+1. 后端服务监听 80 端口，前端静态文件放到 Nginx 静态目录
 2. Nginx 配置反向代理 API 和前端静态资源
 
 ```nginx
@@ -85,7 +85,7 @@ server {
 ---
 
 ## 其他说明
-- 后端接口文档：访问 http://localhost:8080/swagger/index.html
+- 后端接口文档：访问 http://localhost/swagger/index.html
 - 默认管理员账号：admin / admin
 - 支持PC和移动端自适应
 - 支持中英文切换
