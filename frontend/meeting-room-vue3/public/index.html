@@ -13,6 +13,23 @@
     <meta name="msapplication-tap-highlight" content="no" />
     <title>会议室预订系统</title>
     
+    <script>
+      // 微前端环境配置
+      // 在独立开发时设置为 false，在微前端环境中设置为 true
+      window.__MICRO_APP_ENVIRONMENT__ = false;
+      
+      // 处理资源路径
+      function getAssetPath(path) {
+        if (path.startsWith('/')) {
+          return path.slice(1);
+        }
+        return path;
+      }
+
+      // 配置 webpack 公共路径
+      window.__webpack_public_path__ = '';
+    </script>
+    
     <!-- 移动端兼容性脚本 -->
     <script>
       // 扩展错误隔离 - 在脚本开始执行前就设置

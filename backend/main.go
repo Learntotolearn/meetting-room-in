@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"encoding/json"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
@@ -35,6 +36,7 @@ type Room struct {
 	ID       uint   `gorm:"primaryKey" json:"id"`
 	Name     string `gorm:"unique" json:"name"`
 	Capacity int    `json:"capacity"`
+	Status   string `json:"status"` // 新增
 }
 
 type Booking struct {
@@ -95,6 +97,7 @@ type BookRoomRequest struct {
 type EditRoomRequest struct {
 	Name     string `json:"name"`
 	Capacity int    `json:"capacity"`
+	Status   string `json:"status"` // 新增
 }
 
 // UpdateProfileRequest for updating user's profile
@@ -383,6 +386,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
 			c.Abort()
 			return
+		}
+		// 兼容 Bearer token 格式
+		if strings.HasPrefix(tokenString, "Bearer ") {
+			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 		}
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -697,6 +704,9 @@ func editRoomHandler(c *gin.Context) {
 	}
 	if req.Capacity > 0 {
 		room.Capacity = req.Capacity
+	}
+	if req.Status != "" {
+		room.Status = req.Status
 	}
 	db.Save(&room)
 	c.JSON(http.StatusOK, gin.H{"message": "编辑成功", "room": room})
@@ -1170,5 +1180,5 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Run(":80")
+	r.Run(":8015")
 } 

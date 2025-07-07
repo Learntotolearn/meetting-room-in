@@ -13,6 +13,22 @@ code {
 }
 
 @media (max-width: 700px) {
+  html, body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    box-sizing: border-box;
+  }
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .ant-layout-header {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    min-height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+    box-sizing: border-box;
+  }
   /* 只隐藏主菜单栏的文字，不影响overflow抽屉 */
   .ant-menu-root > .ant-menu-item .ant-menu-title-content {
     display: none !important;

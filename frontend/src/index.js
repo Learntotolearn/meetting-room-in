@@ -50,38 +50,13 @@ const handleRuntimeError = () => {
 // 在应用启动前执行兼容性检查
 handleRuntimeError();
 
-// 微前端生命周期
-let root = null;
-
-function mount() {
-  const container = document.getElementById('root');
-  if (!container) return;
-  
-  root = ReactDOM.createRoot(container);
-  root.render(
-    <BrowserRouter basename="/">
-      <App />
-    </BrowserRouter>
-  );
-}
-
-function unmount() {
-  if (root) {
-    root.unmount();
-    root = null;
-  }
-}
-
-// 判断是否在微前端环境中
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  // 暴露生命周期钩子
-  window[`micro-app-meeting-room`] = { mount, unmount };
-} else {
-  // 独立运行时直接挂载
-  mount();
-}
-
-export { mount, unmount };
+const container = document.getElementById('root');
+const root = ReactDOM.createRoot(container);
+root.render(
+  <BrowserRouter basename="/">
+    <App />
+  </BrowserRouter>
+);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

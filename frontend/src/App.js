@@ -1,4 +1,4 @@
-// 导入 UI 组件和图标
+// 导入 UI 组件和图标（Ant Design 组件库和图标库）
 import { Button, Form, Input, message, Layout, Menu, Table, Modal, InputNumber, DatePicker, Select, Space, Card, Tabs, Row, Col, Dropdown, Avatar, Switch, Spin } from 'antd';
 import { UserOutlined, LockOutlined, HomeOutlined, CalendarOutlined, SettingOutlined, LogoutOutlined, TeamOutlined, UnorderedListOutlined, CustomerServiceOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -8,41 +8,44 @@ import { zhCN } from 'date-fns/locale';
 import { format, parseISO, startOfWeek, getDay } from 'date-fns';
 import moment from 'moment';
 
-// 导入工具和配置
-import { getUserInfo, closeApp, isMicroApp } from '@dootask/tools';
-import api from './config';
+// 导入业务工具方法和配置
+import {
+  isMicroApp,      // 判断是否为微前端子应用
+  getUserId,       // 获取用户ID
+  getThemeName,    // 获取主题名
+  getLanguageName, // 获取语言
+  isElectron,      // 判断是否为Electron环境
+  isEEUIApp,       // 判断是否为EEUI环境
+  getSystemInfo,   // 获取系统信息
+  getUserInfo,     // 获取用户信息（核心，登录相关）
+  appReady,        // 应用初始化就绪
+  closeApp,        // 关闭应用（iframe/微前端下常用）
+  // ... 其他方法如需用可继续导入
+} from '@dootask/tools'
+import api from './config'; // axios实例或API配置
 
-// 导入样式
+// 导入全局样式
 import 'moment/locale/zh-cn';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './App.module.css';
 
-// 导入图片资源
-// import logo512Image from './assets/logo512.png';
-// import meetingRoomImage from './assets/meeting-room.jpg';
-// import favicon from './assets/favicon.ico';
-
 // 导入 React 相关库
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'; // 导出Excel
 import { saveAs } from 'file-saver';
 
-// 设置 moment 语言
+// 设置 moment 语言为中文
 moment.locale('zh-cn');
 
-// 检测是否被嵌入，若是则加body类
-if (typeof window !== 'undefined' && isMicroApp && isMicroApp()) {
-  document.body.classList.add('embedded-mode');
-}
-
+// 解构 Layout 组件
 const { Header, Content } = Layout;
 const { RangePicker } = DatePicker;
 
-// 获取基础路径
+// 获取基础路径（一般用于路由前缀）
 const basename = process.env.PUBLIC_URL || '/';
 
-// 设置 favicon
+// 设置 favicon 图标
 const setFavicon = () => {
   const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
   link.type = 'image/x-icon';
@@ -51,50 +54,28 @@ const setFavicon = () => {
   document.getElementsByTagName('head')[0].appendChild(link);
 };
 
-// 判断是否为移动端
+// 判断是否为移动端（用于适配样式）
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-// 判断是否为嵌入模式
-const isEmbedded = typeof window !== 'undefined' && window !== window.parent;
 
-// 自动修正微前端外层容器高度和滚动（定时+MutationObserver双保险）
-if (typeof window !== 'undefined' && window.document) {
-  const fixMicroAppScroll = () => {
-    const microApp = document.querySelector('micro-app');
-    const microAppBody = document.querySelector('micro-app-body');
-    if (microApp) {
-      microApp.style.height = '100vh';
-      microApp.style.overflow = 'auto';
-    }
-    if (microAppBody) {
-      microAppBody.style.height = '100vh';
-      microAppBody.style.overflow = 'auto';
-    }
-  };
-  // 初次执行
-  fixMicroAppScroll();
-  // 监听 DOM 变化
-  const observer = new MutationObserver(fixMicroAppScroll);
-  observer.observe(document.body, { childList: true, subtree: true });
-  // 定时反复修正，防止主站覆盖
-  setInterval(fixMicroAppScroll, 1000);
-}
-
+// 登录组件，处理登录/注册逻辑
 function Login({ onLogin }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true); // true: 登录，false: 注册
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
 
+  // 登录表单提交
   const onLoginFinish = async (values) => {
     try {
       const res = await api.post('/api/login', values);
-      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('token', res.data.token); // 保存 token
       message.success('登录成功');
-      onLogin();
+      onLogin(); // 通知父组件登录成功
     } catch (e) {
       message.error(e.response?.data?.error || '登录失败');
     }
   };
 
+  // 注册表单提交
   const onRegisterFinish = async (values) => {
     try {
       const { username, password } = values;
@@ -107,12 +88,14 @@ function Login({ onLogin }) {
     }
   };
 
+  // 切换登录/注册模式
   const switchMode = () => {
     setIsLogin(!isLogin);
     loginForm.resetFields();
     registerForm.resetFields();
   };
 
+  // 渲染登录/注册表单
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginHeader}>
@@ -121,6 +104,7 @@ function Login({ onLogin }) {
       </div>
       
       {isLogin ? (
+        // 登录表单
         <Form
           form={loginForm}
           name="loginForm"
@@ -144,6 +128,7 @@ function Login({ onLogin }) {
           </div>
         </Form>
       ) : (
+        // 注册表单
         <Form
           form={registerForm}
           name="registerForm"
@@ -554,11 +539,13 @@ function RoomBookingPage({ rooms }) {
   );
 }
 
+// 我的预订组件，展示当前用户的所有预订记录，并支持取消
 function MyBookings({ rooms, fetchRooms }) {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [cancelingId, setCancelingId] = useState(null);
+  const [bookings, setBookings] = useState([]); // 预订列表
+  const [loading, setLoading] = useState(false); // 加载状态
+  const [cancelingId, setCancelingId] = useState(null); // 正在取消的预订ID
 
+  // 拉取我的预订
   const fetchMyBookings = async () => {
     setLoading(true);
     const res = await api.get('/api/mybookings', { headers: { Authorization: localStorage.getItem('token') } });
@@ -569,6 +556,7 @@ function MyBookings({ rooms, fetchRooms }) {
   };
   useEffect(() => { fetchMyBookings(); }, []);
 
+  // 取消预订
   const onCancel = async (id) => {
     Modal.confirm({
       title: '确定要取消该预订吗？',
@@ -587,6 +575,7 @@ function MyBookings({ rooms, fetchRooms }) {
     });
   };
 
+  // 渲染我的预订表格
   return (
     <div style={{ overflowX: 'auto' }}>
       <Table
@@ -610,10 +599,12 @@ function MyBookings({ rooms, fetchRooms }) {
   );
 }
 
+// 预订管理（管理员视角），可查看所有用户的预订并导出
 function BookingManage() {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]); // 所有预订记录
+  const [loading, setLoading] = useState(false); // 加载状态
 
+  // 拉取所有预订
   const fetchAllBookings = async () => {
     setLoading(true);
     try {
@@ -630,6 +621,7 @@ function BookingManage() {
     fetchAllBookings();
   }, []);
 
+  // 表格列定义
   const columns = [
     { title: '会议室', dataIndex: 'room_name', key: 'room_name', filters: [...new Set(bookings.map(b => b.room_name))].map(name => ({ text: name, value: name })), onFilter: (value, record) => record.room_name === value },
     { title: '预订人', dataIndex: 'username', key: 'username' },
@@ -638,7 +630,7 @@ function BookingManage() {
     { title: '申请理由', dataIndex: 'reason', key: 'reason', ellipsis: true },
   ];
 
-  // 导出Excel
+  // 导出Excel功能
   const handleExport = () => {
     // 只导出表格可见列
     const exportData = bookings.map(row => ({
@@ -655,6 +647,7 @@ function BookingManage() {
     saveAs(new Blob([wbout], { type: 'application/octet-stream' }), `预订记录_${moment().format('YYYYMMDD_HHmmss')}.xlsx`);
   };
 
+  // 渲染所有预订表格和导出按钮
   return (
     <div style={{ background: '#fff', padding: 24, borderRadius: 8 }}>
       <h2 style={{marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -674,6 +667,7 @@ function BookingManage() {
   );
 }
 
+// 个人信息页面，支持修改昵称和密码
 function ProfilePage({ user, onProfileUpdate }) {
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
@@ -682,30 +676,29 @@ function ProfilePage({ user, onProfileUpdate }) {
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [canChangePassword, setCanChangePassword] = useState(true);
 
+  // 初始化表单
   useEffect(() => {
     if (user) {
       form.setFieldsValue({ nickname: user.nickname, username: user.username });
     }
   }, [user, form]);
 
-  // 检查用户是否可以修改密码
+  // 检查是否允许修改密码
   useEffect(() => {
     if (user?.role === 'admin') {
-      // 管理员总是可以修改密码
       setCanChangePassword(true);
     } else {
-      // 普通用户需要检查系统设置
       api.get('/api/settings')
         .then(res => {
           setCanChangePassword(res.data.settings.allow_user_change_password);
         })
         .catch(() => {
-          // 如果获取设置失败，默认允许修改
           setCanChangePassword(true);
         });
     }
   }, [user]);
 
+  // 修改昵称
   const onFinish = async (values) => {
     setLoading(true);
     try {
@@ -721,6 +714,7 @@ function ProfilePage({ user, onProfileUpdate }) {
     }
   };
 
+  // 修改密码
   const onPasswordFinish = async (values) => {
     setPasswordLoading(true);
     try {
@@ -740,6 +734,7 @@ function ProfilePage({ user, onProfileUpdate }) {
 
   if (!user) return null;
 
+  // 渲染个人信息表单和密码修改弹窗
   return (
     <div style={{ maxWidth: 500, margin: '32px auto', background: '#fff', padding: '24px', borderRadius: 8 }}>
       <h2 style={{ marginBottom: 24 }}>个人信息设置</h2>
@@ -747,7 +742,7 @@ function ProfilePage({ user, onProfileUpdate }) {
         <Form.Item label="用户名 (不可修改)">
           <Input value={user.username} disabled />
         </Form.Item>
-        <Form.Item name="nickname" label="昵称" rules={[{ required: true, message: '请输入您的昵称' }]}>
+        <Form.Item name="nickname" label="昵称" rules={[{ required: true, message: '请输入您的昵称' }]}> 
           <Input placeholder="请输入您的昵称" />
         </Form.Item>
         <Form.Item>
@@ -830,20 +825,23 @@ function ProfilePage({ user, onProfileUpdate }) {
   );
 }
 
+// 系统设置页面，管理员可设置用户权限、重置密码、管理用户
 function SystemSettingsPage() {
-  const [settings, setSettings] = useState({ allow_user_change_password: true });
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [passwordForm] = Form.useForm();
+  const [settings, setSettings] = useState({ allow_user_change_password: true }); // 系统设置
+  const [users, setUsers] = useState([]); // 用户列表
+  const [loading, setLoading] = useState(false); // 设置加载状态
+  const [usersLoading, setUsersLoading] = useState(false); // 用户列表加载状态
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false); // 重置密码弹窗
+  const [selectedUser, setSelectedUser] = useState(null); // 当前选中的用户
+  const [passwordForm] = Form.useForm(); // 重置密码表单
 
+  // 拉取系统设置和用户列表
   useEffect(() => {
     fetchSettings();
     fetchUsers();
   }, []);
 
+  // 获取系统设置
   const fetchSettings = async () => {
     setLoading(true);
     try {
@@ -856,6 +854,7 @@ function SystemSettingsPage() {
     }
   };
 
+  // 获取用户列表
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
@@ -868,6 +867,7 @@ function SystemSettingsPage() {
     }
   };
 
+  // 切换允许用户修改密码
   const onSettingsChange = async (checked) => {
     try {
       await api.put('/api/admin/settings', { allow_user_change_password: checked }, { headers: { Authorization: localStorage.getItem('token') } });
@@ -878,11 +878,13 @@ function SystemSettingsPage() {
     }
   };
 
+  // 打开重置密码弹窗
   const onResetUserPassword = (user) => {
     setSelectedUser(user);
     setPasswordModalVisible(true);
   };
 
+  // 重置用户密码
   const onPasswordSubmit = async (values) => {
     try {
       await api.put('/api/admin/user/password', {
@@ -898,6 +900,7 @@ function SystemSettingsPage() {
     }
   };
 
+  // 切换用户角色（管理员/普通用户）
   const handleRoleChange = async (checked, user) => {
     try {
       await api.put('/api/admin/user/role', {
@@ -911,6 +914,7 @@ function SystemSettingsPage() {
     }
   };
 
+  // 用户表格列定义
   const userColumns = [
     { title: '用户名', dataIndex: 'username', key: 'username' },
     { title: '昵称', dataIndex: 'nickname', key: 'nickname' },
@@ -941,6 +945,7 @@ function SystemSettingsPage() {
     },
   ];
 
+  // 渲染系统设置页面
   return (
     <div style={{ background: '#fff', padding: 24, borderRadius: 8 }}>
       <h2 style={{marginBottom: 24}}>系统设置</h2>
@@ -1024,8 +1029,19 @@ function SystemSettingsPage() {
   );
 }
 
+// 主App组件，负责全局状态、初始化、登录、自动登录、登出、主界面渲染等
 function App() {
-  const info = getUserInfo();
+  // 业务相关的全局状态
+  const [isMicroAppState, setIsMicroAppState] = useState(false) // 是否微前端
+  const [userId, setUserId] = useState(0) // 用户ID
+  const [themeName, setThemeName] = useState('') // 主题名
+  const [languageName, setLanguageName] = useState('') // 语言
+  const [isElectronState, setIsElectronState] = useState(false) // 是否Electron
+  const [isEEUIAppState, setIsEEUIAppState] = useState(false) // 是否EEUI
+  const [userInfo, setUserInfo] = useState(null) // 用户信息
+  const [systemInfo, setSystemInfo] = useState(null) // 系统信息
+
+  // 登录相关状态
   const [isLogin, setIsLogin] = useState(!!localStorage.getItem('token'));
   const [user, setUser] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -1034,6 +1050,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 拉取会议室列表
   const fetchRooms = async () => {
     setRoomsLoading(true);
     try {
@@ -1054,7 +1071,6 @@ function App() {
       setLoading(false);
       return;
     }
-
     try {
       const res = await api.get('/api/user/info', { headers: { Authorization: token } });
       setUser(res.data);
@@ -1069,22 +1085,29 @@ function App() {
     }
   };
 
-  // 自动登录逻辑
-  const handleAutoLogin = async () => {
-    if (!info?.email) {
+  // 自动登录逻辑（iframe场景下主应用传递token后自动登录）
+  const handleAutoLogin = async (userInfoData) => {
+    console.log('开始自动登录检查');
+    console.log('getUserInfo 获取结果:', userInfoData);
+    setUserInfo(userInfoData);
+    console.log('userInfoData.email 存在:', !!userInfoData?.email);
+    if (!userInfoData?.email) {
+      console.log('没有获取到用户邮箱，跳过自动登录');
       setIsLogin(false);
       setLoading(false);
       return;
     }
+    console.log('开始 SSO 登录，使用邮箱:', userInfoData.email);
     try {
       // 只传递 email、nickname，不再传递 identity
       const ssoData = {
-        email: info.email,
-        nickname: info.nickname || info.email
+        email: userInfoData.email,
+        nickname: userInfoData.nickname || userInfoData.email
       };
+      console.log('SSO 登录数据:', ssoData);
       const res = await api.post('/api/auth/sso', ssoData);
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user || info);
+      setUser(res.data.user || userInfoData);
       setIsLogin(true);
       await checkLoginStatus();
       fetchRooms();
@@ -1096,19 +1119,36 @@ function App() {
     }
   };
 
-  // 初始化检查
+  // 初始化检查，拉取全局信息、用户信息、会议室等
   useEffect(() => {
-    // 设置 favicon
-    setFavicon();
-    
-    const token = localStorage.getItem('token');
-    if (token) {
-      checkLoginStatus();
-    } else {
-      handleAutoLogin();
-    }
+    (async () => {
+      try {
+        setFavicon();
+        setIsMicroAppState(await isMicroApp());
+        setUserId(await getUserId());
+        setThemeName(await getThemeName());
+        setLanguageName(await getLanguageName());
+        setIsElectronState(await isElectron());
+        setIsEEUIAppState(await isEEUIApp());
+        // 只获取一次用户信息
+        const userInfoData = await getUserInfo();
+        console.log('getUserInfo 获取结果:', userInfoData);
+        setUserInfo(userInfoData);
+        setSystemInfo(await getSystemInfo());
+        // 登录判断逻辑
+        const token = localStorage.getItem('token');
+        if (token) {
+          checkLoginStatus();
+        } else {
+          handleAutoLogin(userInfoData); // 传递已获取到的信息
+        }
+      } catch (error) {
+        console.error('应用初始化失败:', error);
+      }
+    })();
   }, []);
 
+  // 登出逻辑
   const logout = () => {
     setIsLogin(false);
     setUser(null);
@@ -1116,6 +1156,7 @@ function App() {
     navigate('/');
   };
 
+  // 个人信息更新回调
   const handleProfileUpdate = (token, updatedUser) => {
     localStorage.setItem('token', token);
     setUser(updatedUser);
@@ -1128,7 +1169,7 @@ function App() {
     }
   }, [user]);
 
-  // 优化渲染逻辑，先判断 loading，再判断 isLogin
+  // 渲染逻辑：优先判断 loading，再判断 isLogin
   if (loading) {
     return <div style={{textAlign:'center',padding:'60px 0'}}><Spin size="large" tip="加载中..." /></div>;
   }
@@ -1151,6 +1192,7 @@ function App() {
   };
   const currentKey = pathToKey[location.pathname] || 'booking';
 
+  // 个人菜单项
   const profileMenuItems = [
     {
       key: 'profile',
@@ -1166,6 +1208,10 @@ function App() {
     },
   ];
 
+  // 判断是否在iframe中
+  const isInIframe = window.self !== window.top;
+
+  // 主界面渲染
   return (
     <Layout className={styles.antLayout} style={{ minHeight: '100vh' }}>
       <Header className={styles.antLayoutHeader} style={{ display: 'flex', alignItems: 'center', padding: '0 24px', width: '100%', minWidth: 0, overflowX: 'auto', whiteSpace: 'nowrap', background: '#001529' }}>
@@ -1215,12 +1261,45 @@ function App() {
               </span>
             </a>
           </Dropdown>
-          {isMobile && isEmbedded && (
+          {isInIframe && (
             <Button
               type="text"
               icon={<CloseOutlined style={{ fontSize: 18 }} />}
-              onClick={closeApp}
-              style={{ color: '#fff', background: 'transparent', border: 'none', marginRight: -17 }}
+              onClick={() => {
+                try {
+                  console.log('关闭按钮被点击');
+                  console.log('closeApp 函数类型:', typeof closeApp);
+                  console.log('closeApp 函数内容:', closeApp);
+                  closeApp();
+                } catch (error) {
+                  console.error('关闭应用失败:', error);
+                }
+              }}
+              onTouchStart={(e) => {
+                // 移动端触摸事件处理
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                  console.log('关闭按钮被触摸');
+                  console.log('closeApp 函数类型:', typeof closeApp);
+                  console.log('closeApp 函数内容:', closeApp);
+                  closeApp();
+                } catch (error) {
+                  console.error('关闭应用失败:', error);
+                }
+              }}
+              style={{ 
+                color: '#fff', 
+                background: 'transparent', 
+                border: 'none', 
+                marginRight: -17,
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px'
+              }}
               title="关闭"
             />
           )}
