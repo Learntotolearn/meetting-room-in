@@ -6,7 +6,7 @@
         <p>管理所有会议室预订</p>
       </div>
       <div style="margin-bottom: 16px; text-align: right;">
-        <a-button type="primary" @click="exportToCSV">导出数据</a-button>
+        <a-button type="primary" @click="exportToCSV" style="margin-right: 5px;">导出数据</a-button>
       </div>
       <div class="table-responsive">
         <a-table
@@ -43,9 +43,9 @@ const loading = ref(false)
 const columns = [
   { title: '用户', dataIndex: 'userName', key: 'userName' },
   { title: '会议室', dataIndex: 'roomName', key: 'roomName' },
-  { title: '预订日期', dataIndex: 'date', key: 'date' },
-  { title: '时间段', dataIndex: 'timeSlots', key: 'timeSlots' },
-  { title: '申请理由', dataIndex: 'reason', key: 'reason' }, // 新增
+  { title: '预订日期', dataIndex: 'date', key: 'date', className: 'no-wrap-cell' },
+  { title: '时间段', dataIndex: 'timeSlots', key: 'timeSlots', className: 'no-wrap-cell' },
+  { title: '预订原因', dataIndex: 'reason', key: 'reason' }, // 新增
   { title: '操作', key: 'action' }
 ]
 
@@ -109,7 +109,7 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 70vw;
+  width: 100vw;
   min-height: 100vh;
   background: #ffffff;
   display: flex;
@@ -133,6 +133,18 @@ onMounted(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+/* 新增：让预订日期和时间段列内容不换行 */
+::v-deep .ant-table-cell {
+  white-space: normal;
+}
+::v-deep .ant-table-cell.booking-date,
+::v-deep .ant-table-cell.time-slots {
+  white-space: nowrap !important;
+}
+/* 强制不换行样式 */
+::v-deep .no-wrap-cell {
+  white-space: nowrap !important;
 }
 /*
 @media (max-width: 950px) {
@@ -161,17 +173,20 @@ onMounted(() => {
   .ant-table-wrapper {
     width: 100vw !important;
     min-width: 0 !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     box-sizing: border-box !important;
   }
   .ant-table {
-    min-width: 600px !important;
+    min-width: 0 !important;
     box-sizing: border-box !important;
+    overflow-x: auto !important;
   }
   .ant-pagination {
     width: 100vw !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
   }
 }
 .page-header {

@@ -55,6 +55,7 @@
         :confirmLoading="bookingLoading"
         :bodyStyle="{padding: '0 0 32px 0', borderRadius: '24px'}"
         :style="{borderRadius: '24px', overflow: 'hidden'}"
+        :footer="null"
       >
         <div class="booking-modal-title">预订会议室</div>
         <div v-if="selectedRoom" class="booking-modal-content">
@@ -76,6 +77,7 @@
                   :disabled-date="disabledDate"
                   style="width: 100%"
                   placeholder="选择预订日期"
+                  :allowClear="false"
                 />
               </a-form-item>
               <a-form-item label="时间段" required>
@@ -86,7 +88,7 @@
                       :key="slot.value"
                       class="time-slot-btn"
                       :class="{
-                        selected: bookingForm.timeSlots[0] === slot.value,
+                        selected: bookingForm.timeSlots.includes(slot.value),
                         disabled: slot.disabled
                       }"
                       :disabled="slot.disabled"
@@ -206,7 +208,7 @@ const disabledDate = (current: any) => {
 // 打开预订弹窗
 const openBookingModal = (room: any) => {
   selectedRoom.value = room
-  bookingForm.date = null
+  bookingForm.date = dayjs()
   bookingForm.timeSlots = []
   bookingForm.reason = ''
   
@@ -229,13 +231,19 @@ const handleBooking = async () => {
       message.error('请选择预订日期')
       return
     }
-    if (bookingForm.timeSlots.length !== 1) {
-      message.error('请选择一个时间段')
+    if (bookingForm.timeSlots.length === 0) {
+      message.error('请选择时间段')
+      return
+    }
+    if (!isTimeSlotsContinuous()) {
+      message.error('只能选择连续的时间段')
       return
     }
     bookingLoading.value = true
     // 拆分时间段
-    const [start, end] = bookingForm.timeSlots[0].split('-')
+    const slots = bookingForm.timeSlots.slice().sort()
+    const [start] = slots[0].split('-')
+    const [, end] = slots[slots.length - 1].split('-')
     const dateStr = dayjs(bookingForm.date).format('YYYY-MM-DD')
     const startTime = dayjs(`${dateStr}T${start}`).toISOString()
     const endTime = dayjs(`${dateStr}T${end}`).toISOString()
@@ -255,9 +263,29 @@ const handleBooking = async () => {
   }
 }
 
-// 新增方法：时间段按钮单选
+// 新增方法：时间段按钮多选，且只允许连续
 const selectTimeSlot = (val: string) => {
-  bookingForm.timeSlots = [val]
+  const idx = bookingForm.timeSlots.indexOf(val)
+  if (idx === -1) {
+    bookingForm.timeSlots.push(val)
+    // 排序，方便后续连续性校验
+    bookingForm.timeSlots.sort()
+  } else {
+    bookingForm.timeSlots.splice(idx, 1)
+  }
+}
+
+// 校验所选时间段是否连续
+const isTimeSlotsContinuous = () => {
+  if (bookingForm.timeSlots.length <= 1) return true
+  // 假设 timeSlots 形如 ['08:00-08:30', '08:30-09:00', ...]
+  const slots = bookingForm.timeSlots.slice().sort()
+  for (let i = 1; i < slots.length; i++) {
+    const prevEnd = slots[i - 1].split('-')[1]
+    const currStart = slots[i].split('-')[0]
+    if (prevEnd !== currStart) return false
+  }
+  return true
 }
 
 // 响应式 gutter 设置
@@ -273,7 +301,7 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 70vw;
+  width: 100vw;
   min-height: 100vh;
   background: #ffffff;
   display: flex;

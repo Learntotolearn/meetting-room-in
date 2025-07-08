@@ -96,7 +96,9 @@ const form = reactive({
 const columns = [
   { title: '会议室名称', dataIndex: 'name', key: 'name' },
   { title: '容纳人数', dataIndex: 'capacity', key: 'capacity' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
+  { title: '状态', dataIndex: 'status', key: 'status',
+    customRender: ({ text }) => (text === 'available' ? '可用' : text === 'maintenance' ? '维护中' : text)
+  },
   { title: '操作', key: 'action' }
 ]
 
@@ -158,7 +160,7 @@ const deleteRoom = (room: any) => {
 
 <style scoped>
 .page-bg {
-  width: 70vw;
+  width: 100vw;
   min-height: 100vh;
   background: #ffffff;
   display: flex;

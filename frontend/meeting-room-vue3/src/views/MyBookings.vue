@@ -118,7 +118,7 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 70vw;
+  width: 100vw;
   min-height: 100vh;
   background: #ffffff;
   display: flex;
