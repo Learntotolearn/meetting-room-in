@@ -3,7 +3,7 @@
   <div class="login-container">
     <!-- 登录头部：Logo 和标题 -->
     <div class="login-header">
-      <img src="/logo192.png" alt="Logo" class="login-logo" />
+      <img src="/logo.png" alt="Logo" class="login-logo" />
       <h1 class="login-title">会议室预订系统</h1>
     </div>
     

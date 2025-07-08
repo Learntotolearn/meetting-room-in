@@ -19,14 +19,13 @@
       <a-layout-header class="ant-layout-header top-nav-header">
         <div class="top-nav-bar">
           <div class="nav-left">
-            <img src="/logo192.png" alt="Logo" class="header-logo" />
+            <img src="/logo-2.png" alt="Logo" class="header-logo" />
             <span class="header-title">会议室预订系统</span>
           </div>
           <div v-if="isMobile" class="custom-mobile-menu">
             <span class="menu-icon" :class="{active: currentPage === 'home'}" @click="handleMenuClick({key: 'home'})"><HomeOutlined /></span>
-            <span class="menu-icon" :class="{active: currentPage === 'booking'}" @click="handleMenuClick({key: 'booking'})"><CalendarOutlined /></span>
             <span class="menu-icon" :class="{active: currentPage === 'my-bookings'}" @click="handleMenuClick({key: 'my-bookings'})"><UnorderedListOutlined /></span>
-            <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'room-manage'}" @click="handleMenuClick({key: 'room-manage'})"><TeamOutlined /></span>
+            <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'room-manage'}" @click="handleMenuClick({key: 'room-manage'})"><AppstoreOutlined /></span>
             <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'booking-manage'}" @click="handleMenuClick({key: 'booking-manage'})"><ScheduleOutlined /></span>
           </div>
           <a-menu
@@ -43,7 +42,7 @@
               <UnorderedListOutlined /> 我的预订
             </a-menu-item>
             <a-menu-item key="room-manage" v-if="isAdmin">
-              <TeamOutlined /> 会议室管理
+              <AppstoreOutlined /> 会议室管理
             </a-menu-item>
             <a-menu-item key="booking-manage" v-if="isAdmin">
               <ScheduleOutlined /> 预订管理
@@ -128,7 +127,7 @@ import {
   CalendarOutlined,
   SettingOutlined,
   LogoutOutlined,
-  TeamOutlined,
+  AppstoreOutlined,
   UnorderedListOutlined,
   ScheduleOutlined,
   CloseOutlined
@@ -322,6 +321,15 @@ onMounted(async () => {
     const autoLoginEnabled = !!settings.autoLogin
     console.log('[onMounted] autoLoginEnabled:', autoLoginEnabled)
 
+    // 1. 优先本地 token 校验
+    const token = localStorage.getItem('token')
+    if (token) {
+      await checkLoginStatus()
+      isAuthLoading.value = false
+      if (isLoggedIn.value) return
+    }
+
+    // 2. 本地无 token，才走 SSO 自动登录
     if (autoLoginEnabled) {
       console.log('[onMounted] 进入 SSO 自动登录流程')
       // SSO 自动登录（无论是否微前端/EEUI）
@@ -348,10 +356,10 @@ onMounted(async () => {
             identity: userInfoData.identity,
             role: userInfoData.role
           })
-          const token = ssoRes.data.token
-          console.log('[onMounted] /auth/sso 返回 token:', token)
-          if (token) {
-            localStorage.setItem('token', token)
+          const ssoToken = ssoRes.data.token
+          console.log('[onMounted] /auth/sso 返回 token:', ssoToken)
+          if (ssoToken) {
+            localStorage.setItem('token', ssoToken)
             console.log('[onMounted] token 已写入 localStorage')
             await checkLoginStatus()
             isAuthLoading.value = false
@@ -374,9 +382,8 @@ onMounted(async () => {
         console.error('[onMounted] SSO 流程异常，fallback 到登录页', e)
       }
     } else {
-      // 非自动登录，走普通 token 检查
-      console.log('[onMounted] 进入普通 token 检查流程')
-      await checkLoginStatus()
+      // 非自动登录，走普通 token 检查（已在前面处理）
+      isLoggedIn.value = false
       isAuthLoading.value = false
     }
   } catch (e) {
