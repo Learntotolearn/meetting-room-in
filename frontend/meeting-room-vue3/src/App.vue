@@ -139,7 +139,8 @@ import {
   getUserInfo,
   appReady,
   closeApp,
-  isMicroApp
+  isMicroApp,
+  isEEUIApp
 } from '@dootask/tools'
 
 // 导入 API 配置
@@ -169,6 +170,7 @@ const systemSettings = ref<any>({}) // 新增：系统设置响应式变量
 // 计算属性：是否为微前端环境
 // const isMicroAppComputed = computed(() => isMicroApp())
 const isMicroAppRef = ref(false)
+const isEEUIAppRef = ref(false)
 
 // 获取会议室列表
 const fetchRooms = async () => {
@@ -310,7 +312,9 @@ onMounted(async () => {
     console.log('[onMounted] 初始化开始')
     // 判断是否微前端环境
     isMicroAppRef.value = await isMicroApp()
+    isEEUIAppRef.value = await isEEUIApp()
     console.log('[onMounted] isMicroAppRef:', isMicroAppRef.value)
+    console.log('[onMounted] isEEUIAppRef:', isEEUIAppRef.value)
     // 拉取系统设置
     const settings = await api.get('/settings').then(res => res.data.settings)
     systemSettings.value = settings // 赋值给响应式变量
@@ -318,12 +322,17 @@ onMounted(async () => {
     const autoLoginEnabled = !!settings.autoLogin
     console.log('[onMounted] autoLoginEnabled:', autoLoginEnabled)
 
-    if (autoLoginEnabled && isMicroAppRef.value) {
+    if (autoLoginEnabled) {
       console.log('[onMounted] 进入 SSO 自动登录流程')
-      // 微前端+自动登录，走 SSO
+      // SSO 自动登录（无论是否微前端/EEUI）
       try {
-        await appReady()
-        console.log('[onMounted] appReady 执行成功')
+        if (isMicroAppRef.value) {
+          await appReady()
+          console.log('[onMounted] appReady 执行成功 (MicroApp)')
+        } else if (isEEUIAppRef.value) {
+          await appReady()
+          console.log('[onMounted] appReady 执行成功 (EEUIApp)')
+        }
       } catch (e) {
         console.warn('[onMounted] appReady 执行异常，已忽略：', e)
       }
@@ -365,7 +374,7 @@ onMounted(async () => {
         console.error('[onMounted] SSO 流程异常，fallback 到登录页', e)
       }
     } else {
-      // 非自动登录或非微前端，走普通 token 检查
+      // 非自动登录，走普通 token 检查
       console.log('[onMounted] 进入普通 token 检查流程')
       await checkLoginStatus()
       isAuthLoading.value = false
