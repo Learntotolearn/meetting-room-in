@@ -11,7 +11,7 @@
       <a-spin tip="正在验证登录状态..." />
     </div>
     <!-- 未登录状态：显示登录页面 -->
-    <Login v-else-if="!isLoggedIn" :onLogin="handleLogin" />
+    <Login v-else-if="!isLoggedIn" :onLogin="handleLogin" :systemSettings="systemSettings" />
     
     <!-- 已登录状态：顶部导航栏布局 -->
     <a-layout v-else style="min-height: 100vh;">
@@ -136,10 +136,10 @@ import {
 
 // 导入 @dootask/tools 工具包
 import {
-  isMicroApp,
   getUserInfo,
   appReady,
-  closeApp
+  closeApp,
+  isMicroApp
 } from '@dootask/tools'
 
 // 导入 API 配置
@@ -164,9 +164,7 @@ const currentPage = ref('home') // 当前页面
 const rooms = ref<any[]>([]) // 会议室列表
 const roomsLoading = ref(false) // 会议室加载状态
 const isMobile = ref(window.innerWidth <= 700)
-
-// 新增：系统设置数据
-const systemSettings = ref<any>({})
+const systemSettings = ref<any>({}) // 新增：系统设置响应式变量
 
 // 计算属性：是否为微前端环境
 // const isMicroAppComputed = computed(() => isMicroApp())
@@ -175,40 +173,35 @@ const isMicroAppRef = ref(false)
 // 获取会议室列表
 const fetchRooms = async () => {
   try {
+    console.log('[fetchRooms] 开始获取会议室列表')
     roomsLoading.value = true
     const res = await api.get('/rooms')
     // 兼容后端返回数组或对象
     rooms.value = Array.isArray(res.data) ? res.data : res.data.rooms || []
+    console.log('[fetchRooms] 获取成功', rooms.value)
   } catch (e: any) {
+    console.error('[fetchRooms] 获取会议室列表失败', e)
     message.error(e.response?.data?.error || '获取会议室列表失败')
   } finally {
     roomsLoading.value = false
-  }
-}
-
-// 获取系统设置（公开）
-const fetchSystemSettings = async () => {
-  try {
-    const res = await api.get('/settings') // 注意不是 /admin/settings
-    return res.data.settings
-  } catch (e) {
-    return { autoLogin: false }
+    console.log('[fetchRooms] 结束')
   }
 }
 
 // 检查登录状态
 const checkLoginStatus = async () => {
-  console.log('checkLoginStatus 开始')
+  console.log('[checkLoginStatus] 开始')
   isAuthLoading.value = true
   try {
     const token = localStorage.getItem('token')
+    console.log('[checkLoginStatus] 本地 token:', token)
     if (!token) {
-      console.log('无 token，未登录')
+      console.log('[checkLoginStatus] 无 token，未登录')
       isLoggedIn.value = false
       return
     }
     const res = await api.get('/user/info')
-    console.log('用户信息获取成功', res.data)
+    console.log('[checkLoginStatus] 用户信息获取成功', res.data)
     user.value = {
       id: res.data.user_id,
       username: res.data.username,
@@ -219,41 +212,12 @@ const checkLoginStatus = async () => {
     isLoggedIn.value = true
     await fetchRooms()
   } catch (e: any) {
-    console.error('自动登录失败', e)
+    console.error('[checkLoginStatus] 自动登录失败', e)
     localStorage.removeItem('token')
     isLoggedIn.value = false
   } finally {
-    console.log('登录校验结束')
+    console.log('[checkLoginStatus] 登录校验结束')
     isAuthLoading.value = false
-  }
-}
-
-// 自动登录处理
-const handleAutoLogin = async (userInfoData: any) => {
-  try {
-    // 用 SSO 信息请求后端 SSO 登录接口，获取后端签发的 token
-    const ssoRes = await api.post('/auth/sso', {
-      email: userInfoData.email,
-      nickname: userInfoData.nickname,
-      identity: userInfoData.identity,
-      role: userInfoData.role
-    })
-    const token = ssoRes.data.token
-    if (token) {
-      localStorage.setItem('token', token)
-      console.log('SSO 登录成功，token 已写入 localStorage')
-      setTimeout(() => {
-        console.log('1秒后 localStorage token:', localStorage.getItem('token'))
-      }, 1000)
-      // 登录成功后，拉取用户信息，刷新主界面
-      await checkLoginStatus()
-      message.success('自动登录成功')
-    } else {
-      console.warn('SSO 登录未返回 token')
-    }
-  } catch (e: any) {
-    console.error('SSO 自动登录失败:', e)
-    message.error('自动登录失败')
   }
 }
 
@@ -340,35 +304,77 @@ api.interceptors.response.use(
   }
 )
 
-// 工具函数：带超时的 Promise
-function withTimeout(promise: Promise<any>, ms: number) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
-  ])
-}
-
 // 组件挂载时的初始化逻辑
-const debugUserInfo = ref<any>(null)
 onMounted(async () => {
-  console.log('onMounted 执行')
-  console.log('应用初始化开始...')
-  const settings = await fetchSystemSettings()
-  systemSettings.value = settings
-  console.log('fetchSystemSettings 后 systemSettings:', systemSettings.value)
-  isMicroAppRef.value = await isMicroApp()
-  const autoLoginEnabled = !!settings.autoLogin
-  console.log('autoLoginEnabled:', autoLoginEnabled)
-  if (autoLoginEnabled) {
-    // 强制 fallback 到登录页
+  try {
+    console.log('[onMounted] 初始化开始')
+    // 判断是否微前端环境
+    isMicroAppRef.value = await isMicroApp()
+    console.log('[onMounted] isMicroAppRef:', isMicroAppRef.value)
+    // 拉取系统设置
+    const settings = await api.get('/settings').then(res => res.data.settings)
+    systemSettings.value = settings // 赋值给响应式变量
+    console.log('[onMounted] 系统设置:', settings)
+    const autoLoginEnabled = !!settings.autoLogin
+    console.log('[onMounted] autoLoginEnabled:', autoLoginEnabled)
+
+    if (autoLoginEnabled && isMicroAppRef.value) {
+      console.log('[onMounted] 进入 SSO 自动登录流程')
+      // 微前端+自动登录，走 SSO
+      try {
+        await appReady()
+        console.log('[onMounted] appReady 执行成功')
+      } catch (e) {
+        console.warn('[onMounted] appReady 执行异常，已忽略：', e)
+      }
+      try {
+        const userInfoData = await getUserInfo()
+        console.log('[onMounted] getUserInfo 返回:', userInfoData)
+        if (userInfoData && userInfoData.email) {
+          // 用 SSO 信息请求后端 SSO 登录接口
+          console.log('[onMounted] 调用 /auth/sso，参数:', userInfoData)
+          const ssoRes = await api.post('/auth/sso', {
+            email: userInfoData.email,
+            nickname: userInfoData.nickname,
+            identity: userInfoData.identity,
+            role: userInfoData.role
+          })
+          const token = ssoRes.data.token
+          console.log('[onMounted] /auth/sso 返回 token:', token)
+          if (token) {
+            localStorage.setItem('token', token)
+            console.log('[onMounted] token 已写入 localStorage')
+            await checkLoginStatus()
+            isAuthLoading.value = false
+            console.log('[onMounted] SSO 自动登录成功，流程结束')
+            return
+          } else {
+            console.warn('[onMounted] SSO 登录未返回 token')
+          }
+        } else {
+          console.warn('[onMounted] getUserInfo 返回信息不全，email 缺失')
+        }
+        // SSO 信息不全或后端未返回 token，fallback 到登录页
+        isLoggedIn.value = false
+        isAuthLoading.value = false
+        console.warn('[onMounted] SSO 信息不全或无 token，fallback 到登录页')
+      } catch (e) {
+        // SSO 流程异常，fallback 到登录页
+        isLoggedIn.value = false
+        isAuthLoading.value = false
+        console.error('[onMounted] SSO 流程异常，fallback 到登录页', e)
+      }
+    } else {
+      // 非自动登录或非微前端，走普通 token 检查
+      console.log('[onMounted] 进入普通 token 检查流程')
+      await checkLoginStatus()
+      isAuthLoading.value = false
+    }
+  } catch (e) {
+    // 初始化异常，fallback 到登录页
     isLoggedIn.value = false
     isAuthLoading.value = false
-    console.log('强制进入登录页')
-    return
-  } else {
-    await checkLoginStatus()
-    isAuthLoading.value = false
-    console.log('非自动登录，checkLoginStatus 结束，isAuthLoading:', isAuthLoading.value, 'isLoggedIn:', isLoggedIn.value)
+    console.error('[onMounted] 初始化异常，fallback 到登录页', e)
   }
 })
 

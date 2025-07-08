@@ -27,11 +27,14 @@ type User struct {
 }
 
 // SystemSettings 系统设置
+// 修正 json tag，全部用小驼峰，确保前后端一致
+// autoLogin -> auto_login, allowRegister -> allow_register
+//
 type SystemSettings struct {
-	ID                    uint `gorm:"primaryKey" json:"id"`
-	AllowUserChangePassword bool `json:"allow_user_change_password"` // 是否允许用户修改密码
-	AutoLogin               bool `json:"autoLogin"` // 新增自动登录字段
-	AllowRegister           bool `json:"allowRegister"` // 新增：允许注册
+	ID                      uint `gorm:"primaryKey" json:"id"`
+	AllowUserChangePassword bool `gorm:"column:allow_user_change_password" json:"allow_user_change_password"`
+	AutoLogin               bool `gorm:"column:auto_login" json:"autoLogin"`
+	AllowRegister           bool `gorm:"column:allow_register" json:"allowRegister"`
 }
 
 type Room struct {
@@ -1185,5 +1188,5 @@ func main() {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Run(":8015")
+	r.Run(":80")
 } 
