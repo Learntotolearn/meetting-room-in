@@ -14,3 +14,4 @@ menu_items:
     icon: ./logo.png
     url: apps/meeting-room/
     auto_dark_theme: false
+    url_type: iframe

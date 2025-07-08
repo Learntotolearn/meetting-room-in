@@ -124,7 +124,6 @@ import { message } from 'ant-design-vue'
 import {
   UserOutlined,
   HomeOutlined,
-  CalendarOutlined,
   SettingOutlined,
   LogoutOutlined,
   AppstoreOutlined,
@@ -683,6 +682,29 @@ onUnmounted(() => {
 @media (max-width: 600px) {
   .mobile-nav {
     display: grid;
+  }
+}
+
+/* 优化头像下拉菜单样式：图标和文字横向排列，间距适中，强制不换行 */
+:deep(.ant-dropdown-menu .ant-dropdown-menu-item),
+:deep(.ant-dropdown-menu .ant-dropdown-menu-title-content) {
+  display: flex !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  gap: 8px;
+  min-width: 120px;
+  font-size: 16px;
+  white-space: nowrap !important;
+}
+:deep(.ant-dropdown-menu .anticon) {
+  margin-right: 8px !important;
+  font-size: 18px !important;
+}
+@media (max-width: 600px) {
+  :deep(.ant-dropdown-menu .ant-dropdown-menu-item) {
+    min-width: 90px;
+    font-size: 15px;
+    padding: 8px 12px;
   }
 }
 </style> 

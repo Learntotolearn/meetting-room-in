@@ -132,6 +132,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
 
 // 导入 API 配置
 import api from '@/config'
@@ -153,7 +154,7 @@ const availableTimeSlots = ref<any[]>([]) // 可用时间段
 
 // 预订表单数据
 const bookingForm = reactive({
-  date: null, // 预订日期
+  date: null as Dayjs | null, // 预订日期
   timeSlots: [] as string[], // 选中的时间段（只允许单选）
   reason: '' // 预订原因
 })
@@ -301,7 +302,7 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 100vw;
+  width: 99vw;
   min-height: 100vh;
   background: #ffffff;
   display: flex;
@@ -408,10 +409,11 @@ onMounted(() => {
 
 @media (max-width: 600px) {
   .page-bg {
-    width: 100vw;
+    width: 99vw;
     min-width: 0;
     padding: 8px 0;
     background: #ffffff;
+    overflow-x: hidden !important;
   }
   .room-list {
     max-width: 100vw;
@@ -438,6 +440,20 @@ onMounted(() => {
     min-height: 44px !important;
     font-size: 14px !important;
     padding: 8px 0 !important;
+  }
+  .ant-table-wrapper,
+  .ant-table,
+  .ant-pagination {
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  .table-responsive {
+    overflow-x: hidden !important;
+  }
+  html, body {
+    overflow-x: hidden !important;
   }
 }
 

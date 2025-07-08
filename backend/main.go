@@ -88,6 +88,7 @@ type SSORequest struct {
 type AddRoomRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Capacity int    `json:"capacity" binding:"required"`
+	Status   string `json:"status"` // 新增
 }
 
 // 预订会议室请求体
@@ -451,7 +452,7 @@ func addRoomHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
 		return
 	}
-	room := Room{Name: req.Name, Capacity: req.Capacity}
+	room := Room{Name: req.Name, Capacity: req.Capacity, Status: req.Status} // 新增 Status
 	if err := db.Create(&room).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "会议室已存在或参数错误"})
 		return
