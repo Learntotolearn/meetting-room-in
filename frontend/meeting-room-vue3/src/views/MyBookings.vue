@@ -118,9 +118,9 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 100vw;
+  width: 70vw;
   min-height: 100vh;
-  background: #f7f8fa;
+  background: #ffffff;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -143,6 +143,20 @@ onMounted(() => {
     min-width: 0;
     padding: 16px 0 12px 0;
     border-radius: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .page-bg {
+    width: 100vw;
+    min-width: 0;
+    padding: 8px 0;
+  }
+  .main-card {
+    width: 100vw;
+    min-width: 0;
+    max-width: 100vw;
+    border-radius: 0;
+    padding: 8px 0 8px 0;
   }
 }
 .page-header {

@@ -1,113 +1,116 @@
 <template>
-  <!-- 会议室预订页面 -->
-  <div class="room-booking-page">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2>会议室预订</h2>
-    </div>
-    
-    <!-- 会议室列表 -->
-    <div class="room-list">
-      <a-row :gutter="[16, 16]">
-        <a-col
-          v-for="room in rooms"
-          :key="room.id"
-          :xs="24"
-          :sm="12"
-          :md="12"
-          :lg="12"
-        >
-          <!-- 会议室卡片 -->
-          <a-card
-            class="room-card"
-            hoverable
-            @click="isRoomAvailable(room) && openBookingModal(room)"
-            :style="{ cursor: isRoomAvailable(room) ? 'pointer' : 'not-allowed', opacity: isRoomAvailable(room) ? 1 : 0.6 }"
-          >
-            <!-- 会议室图片：优先 room.image，否则用默认图片 -->
-            <template #cover>
-              <img :src="room.image || defaultRoomImage" :alt="room.name" class="room-image" />
-            </template>
-            
-            <!-- 会议室信息 -->
-            <template #title>
-              <div class="room-card-title">
-                <span class="room-name">{{ room.name }}</span>
-                <span class="room-capacity">容纳 {{ room.capacity }} 人</span>
-                <a-tag :color="getRoomStatusColor(room)" class="room-status-tag">
-                  {{ getRoomStatusText(room) }}
-                </a-tag>
-              </div>
-            </template>
-          </a-card>
-        </a-col>
-      </a-row>
-    </div>
-    
-    <!-- 预订弹窗 -->
-    <a-modal
-      v-model:open="bookingModalVisible"
-      title="预订会议室"
-      width="600px"
-      @ok="handleBooking"
-      @cancel="closeBookingModal"
-      :confirmLoading="bookingLoading"
-    >
-      <div v-if="selectedRoom">
-        <!-- 会议室信息 -->
-        <div class="booking-room-info">
-          <h3>{{ selectedRoom.name }}</h3>
-          <p>容纳 {{ selectedRoom.capacity }} 人</p>
-        </div>
-        
-        <!-- 日期选择 -->
-        <a-form :model="bookingForm" layout="vertical">
-          <a-form-item label="预订日期" required>
-            <a-date-picker
-              v-model:value="bookingForm.date"
-              :disabled-date="disabledDate"
-              style="width: 100%"
-              placeholder="选择预订日期"
-            />
-          </a-form-item>
-          
-          <!-- 时间段选择 -->
-          <a-form-item label="时间段" required>
-            <div class="time-slots">
-              <a-checkbox-group
-                v-model:value="bookingForm.timeSlots"
-                @change="onTimeSlotsChange"
-              >
-                <a-row :gutter="[8, 8]">
-                  <a-col
-                    v-for="slot in availableTimeSlots"
-                    :key="slot.value"
-                    :span="6"
-                  >
-                    <a-checkbox
-                      :value="slot.value"
-                      :disabled="slot.disabled"
-                      class="time-slot-checkbox"
-                    >
-                      {{ slot.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </div>
-          </a-form-item>
-          
-          <!-- 预订原因 -->
-          <a-form-item label="预订原因">
-            <a-textarea
-              v-model:value="bookingForm.reason"
-              :rows="3"
-              placeholder="请输入预订原因（可选）"
-            />
-          </a-form-item>
-        </a-form>
+  <div class="page-bg">
+    <!-- 会议室预订页面 -->
+    <div class="room-booking-page">
+      <!-- 页面标题 -->
+      <div class="page-header">
+        <h2>会议室预订</h2>
       </div>
-    </a-modal>
+      
+      <!-- 会议室列表 -->
+      <div class="room-list">
+        <a-row :gutter="gutterResponsive">
+          <a-col
+            v-for="room in rooms"
+            :key="room.id"
+            :xs="24"
+            :sm="12"
+            :md="12"
+            :lg="12"
+          >
+            <!-- 会议室卡片 -->
+            <a-card
+              class="room-card"
+              hoverable
+              @click="isRoomAvailable(room) && openBookingModal(room)"
+              :style="{ cursor: isRoomAvailable(room) ? 'pointer' : 'not-allowed', opacity: isRoomAvailable(room) ? 1 : 0.6 }"
+            >
+              <!-- 会议室图片：优先 room.image，否则用默认图片 -->
+              <template #cover>
+                <img :src="room.image || defaultRoomImage" :alt="room.name" class="room-image" />
+              </template>
+              
+              <!-- 会议室信息 -->
+              <template #title>
+                <div class="room-card-title">
+                  <span class="room-name">{{ room.name }}</span>
+                  <span class="room-capacity">容纳 {{ room.capacity }} 人</span>
+                  <a-tag :color="getRoomStatusColor(room)" class="room-status-tag">
+                    {{ getRoomStatusText(room) }}
+                  </a-tag>
+                </div>
+              </template>
+            </a-card>
+          </a-col>
+        </a-row>
+      </div>
+      
+      <!-- 预订弹窗 -->
+      <a-modal
+        v-model:open="bookingModalVisible"
+        title="预订会议室"
+        width="600px"
+        @ok="handleBooking"
+        @cancel="closeBookingModal"
+        :confirmLoading="bookingLoading"
+      >
+        <div v-if="selectedRoom">
+          <!-- 会议室信息 -->
+          <div class="booking-room-info">
+            <h3>{{ selectedRoom.name }}</h3>
+            <p>容纳 {{ selectedRoom.capacity }} 人</p>
+          </div>
+          
+          <!-- 日期选择 -->
+          <a-form :model="bookingForm" layout="vertical">
+            <a-form-item label="预订日期" required>
+              <a-date-picker
+                v-model:value="bookingForm.date"
+                :disabled-date="disabledDate"
+                style="width: 100%"
+                placeholder="选择预订日期"
+              />
+            </a-form-item>
+            
+            <!-- 时间段选择 -->
+            <a-form-item label="时间段" required>
+              <div class="time-slots">
+                <a-checkbox-group
+                  v-model:value="bookingForm.timeSlots"
+                  @change="onTimeSlotsChange"
+                  :max="1"
+                >
+                  <a-row :gutter="[8, 8]">
+                    <a-col
+                      v-for="slot in availableTimeSlots"
+                      :key="slot.value"
+                      :span="6"
+                    >
+                      <a-checkbox
+                        :value="slot.value"
+                        :disabled="slot.disabled"
+                        class="time-slot-checkbox"
+                      >
+                        {{ slot.label }}
+                      </a-checkbox>
+                    </a-col>
+                  </a-row>
+                </a-checkbox-group>
+              </div>
+            </a-form-item>
+            
+            <!-- 预订原因 -->
+            <a-form-item label="预订原因">
+              <a-textarea
+                v-model:value="bookingForm.reason"
+                :rows="3"
+                placeholder="请输入预订原因（可选）"
+              />
+            </a-form-item>
+          </a-form>
+        </div>
+      </a-modal>
+    </div>
   </div>
 </template>
 
@@ -138,7 +141,7 @@ const availableTimeSlots = ref<any[]>([]) // 可用时间段
 // 预订表单数据
 const bookingForm = reactive({
   date: null, // 预订日期
-  timeSlots: [], // 选中的时间段
+  timeSlots: [], // 选中的时间段（只允许单选）
   reason: '' // 预订原因
 })
 
@@ -202,48 +205,50 @@ const closeBookingModal = () => {
 
 // 时间段选择变化处理
 const onTimeSlotsChange = (checkedValues: string[]) => {
+  // 只允许单选
+  if (checkedValues.length > 1) {
+    checkedValues.splice(1)
+  }
   bookingForm.timeSlots = checkedValues
 }
 
 // 处理预订提交
 const handleBooking = async () => {
   try {
-    // 验证表单
     if (!bookingForm.date) {
       message.error('请选择预订日期')
       return
     }
-    
-    if (bookingForm.timeSlots.length === 0) {
-      message.error('请选择时间段')
+    if (bookingForm.timeSlots.length !== 1) {
+      message.error('请选择一个时间段')
       return
     }
-    
     bookingLoading.value = true
-    
-    // 构建预订数据
+    // 拆分时间段
+    const [start, end] = bookingForm.timeSlots[0].split('-')
+    const dateStr = dayjs(bookingForm.date).format('YYYY-MM-DD')
+    const startTime = dayjs(`${dateStr}T${start}`).toISOString()
+    const endTime = dayjs(`${dateStr}T${end}`).toISOString()
     const bookingData = {
-      roomId: selectedRoom.value.id,
-      date: dayjs(bookingForm.date).format('YYYY-MM-DD'),
-      timeSlots: bookingForm.timeSlots,
+      room_id: selectedRoom.value.id,
+      start_time: startTime,
+      end_time: endTime,
       reason: bookingForm.reason
     }
-    
-    // 发送预订请求
     const res = await api.post('/bookings', bookingData)
-    
     message.success('预订成功')
     closeBookingModal()
-    
-    // 可以在这里触发父组件刷新数据
-    // emit('booking-success')
-    
   } catch (e: any) {
     message.error(e.response?.data?.error || '预订失败')
   } finally {
     bookingLoading.value = false
   }
 }
+
+// 响应式 gutter 设置
+const gutterResponsive = computed(() => {
+  return window.innerWidth < 700 ? [8, 16] : [70, 50]
+})
 
 // 组件挂载时初始化
 onMounted(() => {
@@ -252,14 +257,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.page-bg {
+  width: 70vw;
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 0;
+  box-sizing: border-box;
+}
 .room-list {
   margin-top: 32px;
   margin-left: auto;
   margin-right: auto;
   max-width: 1400px;
   width: 100%;
-  display: flex;
-  justify-content: center;
+  /* 移除 display: flex; 和 justify-content: center; */
 }
 
 .room-card {
@@ -271,7 +285,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   background: #fff;
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; 移除，避免与 gutter 冲突 */
 }
 
 .room-card:hover {
@@ -349,12 +363,22 @@ onMounted(() => {
   padding: 0 8px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 700px) {
+  .page-bg {
+    width: 100vw;
+    min-width: 0;
+    padding: 8px 0;
+    background: #ffffff;
+  }
+  .room-list {
+    max-width: 100vw;
+    width: 100vw;
+    padding: 0;
+  }
   .room-card {
-    width: 98vw;
+    width: 100%;
     min-width: 0;
     max-width: 100vw;
-    margin-bottom: 12px;
   }
   .room-image {
     height: 140px;

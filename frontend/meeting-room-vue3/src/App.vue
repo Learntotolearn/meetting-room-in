@@ -21,7 +21,7 @@
             <span class="menu-icon" :class="{active: currentPage === 'booking'}" @click="handleMenuClick({key: 'booking'})"><CalendarOutlined /></span>
             <span class="menu-icon" :class="{active: currentPage === 'my-bookings'}" @click="handleMenuClick({key: 'my-bookings'})"><UnorderedListOutlined /></span>
             <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'room-manage'}" @click="handleMenuClick({key: 'room-manage'})"><TeamOutlined /></span>
-            <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'booking-manage'}" @click="handleMenuClick({key: 'booking-manage'})"><CustomerServiceOutlined /></span>
+            <span v-if="isAdmin" class="menu-icon" :class="{active: currentPage === 'booking-manage'}" @click="handleMenuClick({key: 'booking-manage'})"><ScheduleOutlined /></span>
           </div>
           <a-menu
             v-else
@@ -40,7 +40,7 @@
               <TeamOutlined /> 会议室管理
             </a-menu-item>
             <a-menu-item key="booking-manage" v-if="isAdmin">
-              <CustomerServiceOutlined /> 预订管理
+              <ScheduleOutlined /> 预订管理
             </a-menu-item>
           </a-menu>
           <div class="nav-right">
@@ -124,7 +124,7 @@ import {
   LogoutOutlined,
   TeamOutlined,
   UnorderedListOutlined,
-  CustomerServiceOutlined,
+  ScheduleOutlined,
   CloseOutlined
 } from '@ant-design/icons-vue'
 
@@ -573,25 +573,31 @@ onUnmounted(() => {
   }
   .nav-right {
     display: flex !important;
-    align-items: center;
-    gap: 3px;
-    height: 44px;
+    align-items: center !important;
+    height: auto !important;
+    margin: 0 0 0 8px !important;
+    gap: 0 !important;
   }
   .user-avatar {
     width: 28px !important;
     height: 28px !important;
+    margin-left: 8px !important;
   }
   .close-btn {
     display: inline-flex !important;
-    margin-left: -8px;
-    margin-right: -14px;
+    margin-left: 8px !important;
+    margin-right: 0 !important;
+    align-items: center !important;
   }
 }
 
 :deep(.ant-btn) {
   font-size: 14px !important;
   height: 36px !important;
-  padding: 4px 15px !important;
+  padding: 4px 2px !important;
   border-radius: 6px !important;
+}
+:deep(.user-avatar) {
+  line-height: 26px !important;
 }
 </style> 

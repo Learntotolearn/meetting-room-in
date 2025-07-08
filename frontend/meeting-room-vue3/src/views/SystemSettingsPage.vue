@@ -4,53 +4,50 @@
       <h2>系统设置</h2>
       <p>管理系统设置和用户</p>
     </div>
-    
-    <a-tabs v-model:activeKey="activeTab">
-      <a-tab-pane key="settings" tab="系统设置">
-        <a-card title="基本设置">
-          <a-form :model="settingsForm" layout="vertical">
-            <a-form-item label="系统名称">
-              <a-input v-model:value="settingsForm.systemName" />
-            </a-form-item>
-            <a-form-item label="允许注册">
-              <a-switch v-model:checked="settingsForm.allowRegister" />
-            </a-form-item>
-            <a-form-item>
-              <a-button type="primary" @click="saveSettings" :loading="settingsLoading">
-                保存设置
-              </a-button>
-            </a-form-item>
-          </a-form>
-        </a-card>
-      </a-tab-pane>
-      
-      <a-tab-pane key="users" tab="用户管理">
-        <a-table
-          :columns="userColumns"
-          :data-source="users"
-          :loading="usersLoading"
-          row-key="id"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'role'">
-              <a-tag :color="record.role === 'admin' ? 'red' : 'blue'">
-                {{ record.role === 'admin' ? '管理员' : '普通用户' }}
-              </a-tag>
-            </template>
-            <template v-else-if="column.key === 'action'">
-              <a-space>
-                <a-button type="link" @click="resetPassword(record)">
-                  重置密码
-                </a-button>
-                <a-button type="link" @click="toggleRole(record)">
-                  {{ record.role === 'admin' ? '取消管理员' : '设为管理员' }}
-                </a-button>
-              </a-space>
-            </template>
+    <!-- 系统设置表单 -->
+    <a-card title="基本设置" style="margin-bottom: 24px;">
+      <a-form :model="settingsForm" layout="vertical">
+        <a-form-item label="系统名称">
+          <a-input v-model:value="settingsForm.systemName" />
+        </a-form-item>
+        <a-form-item label="允许注册">
+          <a-switch v-model:checked="settingsForm.allowRegister" />
+        </a-form-item>
+        <a-form-item>
+          <a-button type="primary" @click="saveSettings" :loading="settingsLoading">
+            保存设置
+          </a-button>
+        </a-form-item>
+      </a-form>
+    </a-card>
+    <!-- 用户管理表格 -->
+    <a-card title="用户管理">
+      <a-table
+        :columns="userColumns"
+        :data-source="users"
+        :loading="usersLoading"
+        row-key="id"
+        :scroll="{ x: 'max-content' }"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'role'">
+            <a-tag :color="record.role === 'admin' ? 'red' : 'blue'">
+              {{ record.role === 'admin' ? '管理员' : '普通用户' }}
+            </a-tag>
           </template>
-        </a-table>
-      </a-tab-pane>
-    </a-tabs>
+          <template v-else-if="column.key === 'action'">
+            <a-space>
+              <a-button type="link" @click="resetPassword(record)">
+                重置密码
+              </a-button>
+              <a-button type="link" @click="toggleRole(record)">
+                {{ record.role === 'admin' ? '取消管理员' : '设为管理员' }}
+              </a-button>
+            </a-space>
+          </template>
+        </template>
+      </a-table>
+    </a-card>
   </div>
 </template>
 
@@ -171,6 +168,26 @@ onMounted(() => {
     min-width: 0;
     padding: 16px 0 12px 0;
     border-radius: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .system-settings-page,
+  .main-card,
+  .ant-table-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .ant-table-content {
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+    padding-bottom: 2px;
+  }
+  .ant-table {
+    min-width: 600px !important;
+    box-sizing: border-box !important;
   }
 }
 </style> 

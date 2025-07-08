@@ -5,7 +5,9 @@
         <h2>预订管理</h2>
         <p>管理所有会议室预订</p>
       </div>
-      
+      <div style="margin-bottom: 16px; text-align: right;">
+        <a-button type="primary" @click="exportToCSV">导出数据</a-button>
+      </div>
       <div class="table-responsive">
         <a-table
           :columns="columns"
@@ -16,18 +18,10 @@
           :scroll="{ x: 600 }"
         >
           <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'status'">
-              <a-tag :color="getStatusColor(record.status)">
-                {{ getStatusText(record.status) }}
-              </a-tag>
-            </template>
-            <template v-else-if="column.key === 'action'">
+            <template v-if="column.key === 'action'">
               <a-space>
-                <a-button type="link" @click="viewBooking(record)">
-                  查看
-                </a-button>
                 <a-button type="link" danger @click="cancelBooking(record)">
-                  取消
+                  取消预订
                 </a-button>
               </a-space>
             </template>
@@ -51,7 +45,7 @@ const columns = [
   { title: '会议室', dataIndex: 'roomName', key: 'roomName' },
   { title: '预订日期', dataIndex: 'date', key: 'date' },
   { title: '时间段', dataIndex: 'timeSlots', key: 'timeSlots' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
+  { title: '申请理由', dataIndex: 'reason', key: 'reason' }, // 新增
   { title: '操作', key: 'action' }
 ]
 
@@ -68,7 +62,7 @@ const fetchAllBookings = async () => {
       timeSlots: item.start_time && item.end_time
         ? `${item.start_time.slice(11, 16)}-${item.end_time.slice(11, 16)}`
         : '',
-      status: 'active' // 如有后端状态可替换
+      reason: item.reason || '', // 新增
     }))
   } catch (e: any) {
     message.error(e.response?.data?.error || '获取预订记录失败')
@@ -109,6 +103,27 @@ const cancelBooking = async (booking: any) => {
   }
 }
 
+// 导出为 CSV
+const exportToCSV = () => {
+  if (!bookings.value.length) return
+  const header = ['用户', '会议室', '预订日期', '时间段', '申请理由']
+  const rows = bookings.value.map(b => [
+    b.userName,
+    b.roomName,
+    b.date,
+    b.timeSlots,
+    b.reason?.replace(/\n/g, ' ')
+  ])
+  const csvContent = '\uFEFF' + [header, ...rows].map(e => e.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.setAttribute('download', `bookings_${Date.now()}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 onMounted(() => {
   fetchAllBookings()
 })
@@ -116,9 +131,9 @@ onMounted(() => {
 
 <style scoped>
 .page-bg {
-  width: 100vw;
+  width: 70vw;
   min-height: 100vh;
-  background: #f7f8fa;
+  background: #ffffff;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -135,12 +150,32 @@ onMounted(() => {
   flex-direction: column;
   align-items: stretch;
 }
+/* 修复表头竖排问题 */
+::v-deep .ant-table-thead > tr > th {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 @media (max-width: 950px) {
   .main-card {
     width: 98vw;
     min-width: 0;
     padding: 16px 0 12px 0;
     border-radius: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .page-bg {
+    width: 100vw;
+    min-width: 0;
+    padding: 8px 0;
+  }
+  .main-card {
+    width: 100vw;
+    min-width: 0;
+    max-width: 100vw;
+    border-radius: 0;
+    padding: 8px 0 8px 0;
   }
 }
 .page-header {
