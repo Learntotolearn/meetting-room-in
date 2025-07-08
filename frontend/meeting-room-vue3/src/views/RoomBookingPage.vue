@@ -48,66 +48,77 @@
       <!-- 预订弹窗 -->
       <a-modal
         v-model:open="bookingModalVisible"
-        title="预订会议室"
-        width="600px"
+        :title="null"
+        width="700px"
         @ok="handleBooking"
         @cancel="closeBookingModal"
         :confirmLoading="bookingLoading"
+        :bodyStyle="{padding: '0 0 32px 0', borderRadius: '24px'}"
+        :style="{borderRadius: '24px', overflow: 'hidden'}"
       >
-        <div v-if="selectedRoom">
-          <!-- 会议室信息 -->
-          <div class="booking-room-info">
-            <h3>{{ selectedRoom.name }}</h3>
-            <p>容纳 {{ selectedRoom.capacity }} 人</p>
+        <div class="booking-modal-title">预订会议室</div>
+        <div v-if="selectedRoom" class="booking-modal-content">
+          <!-- 会议室大图 -->
+          <div class="booking-room-image-wrap">
+            <img :src="selectedRoom.image || defaultRoomImage" :alt="selectedRoom.name" class="booking-room-image" />
           </div>
-          
-          <!-- 日期选择 -->
-          <a-form :model="bookingForm" layout="vertical">
-            <a-form-item label="预订日期" required>
-              <a-date-picker
-                v-model:value="bookingForm.date"
-                :disabled-date="disabledDate"
-                style="width: 100%"
-                placeholder="选择预订日期"
-              />
-            </a-form-item>
-            
-            <!-- 时间段选择 -->
-            <a-form-item label="时间段" required>
-              <div class="time-slots">
-                <a-checkbox-group
-                  v-model:value="bookingForm.timeSlots"
-                  @change="onTimeSlotsChange"
-                  :max="1"
-                >
-                  <a-row :gutter="[8, 8]">
-                    <a-col
+          <!-- 会议室信息 -->
+          <div class="booking-room-info2">
+            <div class="booking-room-title">{{ selectedRoom.name }}</div>
+            <div class="booking-room-capacity">容纳{{ selectedRoom.capacity }}人</div>
+          </div>
+          <!-- 表单区 -->
+          <div class="booking-form-area">
+            <a-form :model="bookingForm" layout="vertical">
+              <a-form-item label="预订日期" required>
+                <a-date-picker
+                  v-model:value="bookingForm.date"
+                  :disabled-date="disabledDate"
+                  style="width: 100%"
+                  placeholder="选择预订日期"
+                />
+              </a-form-item>
+              <a-form-item label="时间段" required>
+                <div class="time-slots-btns">
+                  <div class="time-slot-btns-grid">
+                    <button
                       v-for="slot in availableTimeSlots"
                       :key="slot.value"
-                      :span="6"
+                      class="time-slot-btn"
+                      :class="{
+                        selected: bookingForm.timeSlots[0] === slot.value,
+                        disabled: slot.disabled
+                      }"
+                      :disabled="slot.disabled"
+                      @click.prevent="selectTimeSlot(slot.value)"
+                      type="button"
                     >
-                      <a-checkbox
-                        :value="slot.value"
-                        :disabled="slot.disabled"
-                        class="time-slot-checkbox"
-                      >
-                        {{ slot.label }}
-                      </a-checkbox>
-                    </a-col>
-                  </a-row>
-                </a-checkbox-group>
-              </div>
-            </a-form-item>
-            
-            <!-- 预订原因 -->
-            <a-form-item label="预订原因">
-              <a-textarea
-                v-model:value="bookingForm.reason"
-                :rows="3"
-                placeholder="请输入预订原因（可选）"
-              />
-            </a-form-item>
-          </a-form>
+                      {{ slot.label }}
+                    </button>
+                  </div>
+                </div>
+              </a-form-item>
+              <a-form-item label="预订原因">
+                <a-textarea
+                  v-model:value="bookingForm.reason"
+                  :rows="3"
+                  placeholder="请输入预订原因（可选）"
+                  class="booking-reason-textarea"
+                />
+              </a-form-item>
+            </a-form>
+            <div class="booking-btn-row">
+              <a-button
+                type="primary"
+                size="large"
+                style="width: 220px; border-radius: 24px; font-size: 18px; font-weight: 600;"
+                :loading="bookingLoading"
+                @click="handleBooking"
+              >
+                预订
+              </a-button>
+            </div>
+          </div>
         </div>
       </a-modal>
     </div>
@@ -130,7 +141,7 @@ interface Props {
   loading: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 // 响应式数据
 const bookingModalVisible = ref(false) // 预订弹窗显示状态
@@ -141,21 +152,29 @@ const availableTimeSlots = ref<any[]>([]) // 可用时间段
 // 预订表单数据
 const bookingForm = reactive({
   date: null, // 预订日期
-  timeSlots: [], // 选中的时间段（只允许单选）
+  timeSlots: [] as string[], // 选中的时间段（只允许单选）
   reason: '' // 预订原因
 })
 
-// 生成时间段（6:00-24:00，每小时一个时间段）
+// 生成时间段（6:00-24:00，每半小时一个时间段）
 const generateTimeSlots = () => {
   const slots = []
   for (let hour = 6; hour < 24; hour++) {
-    const startTime = `${hour.toString().padStart(2, '0')}:00`
-    const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`
-    slots.push({
-      value: `${startTime}-${endTime}`,
-      label: `${startTime}-${endTime}`,
-      disabled: false
-    })
+    for (let min = 0; min < 60; min += 30) {
+      const startTime = `${hour.toString().padStart(2, '0')}:${min === 0 ? '00' : '30'}`
+      let endHour = hour
+      let endMin = min + 30
+      if (endMin === 60) {
+        endHour += 1
+        endMin = 0
+      }
+      const endTime = `${endHour.toString().padStart(2, '0')}:${endMin === 0 ? '00' : '30'}`
+      slots.push({
+        value: `${startTime}-${endTime}`,
+        label: `${startTime}-${endTime}`,
+        disabled: false
+      })
+    }
   }
   return slots
 }
@@ -203,15 +222,6 @@ const closeBookingModal = () => {
   selectedRoom.value = null
 }
 
-// 时间段选择变化处理
-const onTimeSlotsChange = (checkedValues: string[]) => {
-  // 只允许单选
-  if (checkedValues.length > 1) {
-    checkedValues.splice(1)
-  }
-  bookingForm.timeSlots = checkedValues
-}
-
 // 处理预订提交
 const handleBooking = async () => {
   try {
@@ -235,7 +245,7 @@ const handleBooking = async () => {
       end_time: endTime,
       reason: bookingForm.reason
     }
-    const res = await api.post('/bookings', bookingData)
+    await api.post('/bookings', bookingData)
     message.success('预订成功')
     closeBookingModal()
   } catch (e: any) {
@@ -243,6 +253,11 @@ const handleBooking = async () => {
   } finally {
     bookingLoading.value = false
   }
+}
+
+// 新增方法：时间段按钮单选
+const selectTimeSlot = (val: string) => {
+  bookingForm.timeSlots = [val]
 }
 
 // 响应式 gutter 设置
@@ -363,7 +378,7 @@ onMounted(() => {
   padding: 0 8px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .page-bg {
     width: 100vw;
     min-width: 0;
@@ -387,6 +402,15 @@ onMounted(() => {
     height: 36px;
     font-size: 15px;
   }
+  .time-slot-btns-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px 18px !important;
+  }
+  .time-slot-btn {
+    min-height: 44px !important;
+    font-size: 14px !important;
+    padding: 8px 0 !important;
+  }
 }
 
 .page-header {
@@ -402,5 +426,91 @@ onMounted(() => {
   text-align: center;
   letter-spacing: 2px;
   display: inline-block;
+}
+
+.booking-modal-content {
+  padding: 0 32px 0 32px;
+}
+.booking-room-image-wrap {
+  width: 100%;
+  height: 160px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+/* 标题样式 */
+.booking-modal-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 24px 0 12px 0;
+  letter-spacing: 1px;
+  color: #222;
+}
+.booking-room-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.booking-room-info2 {
+  margin-bottom: 18px;
+  text-align: left;
+}
+.booking-room-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 2px;
+}
+.booking-room-capacity {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 2px;
+}
+.booking-form-area {
+  margin-top: 8px;
+}
+.time-slots-btns {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.time-slot-btns-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 16px;
+}
+.time-slot-btn {
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 18px;
+  border: 1.5px solid #e0e0e0;
+  background: #fafbfc;
+  color: #222;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.18s;
+  cursor: pointer;
+  outline: none;
+}
+.time-slot-btn.selected {
+  background: #1677ff;
+  color: #fff;
+  border-color: #1677ff;
+}
+.time-slot-btn.disabled {
+  background: #f3f3f3;
+  color: #bbb;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+.booking-reason-textarea {
+  border-radius: 16px !important;
+  font-size: 15px;
+}
+.booking-btn-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
 }
 </style> 

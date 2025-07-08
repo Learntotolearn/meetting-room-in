@@ -55,8 +55,8 @@
         </a-button>
       </a-form-item>
       
-      <!-- 切换到注册模式 -->
-      <div class="login-switch">
+      <!-- 切换到注册模式，仅允许注册时显示 -->
+      <div class="login-switch" v-if="props.systemSettings?.allowRegister !== false">
         <span>还没有账号？</span>
         <a-button type="link" @click="switchMode" style="padding: 0; height: auto">
           立即注册
@@ -148,6 +148,7 @@ import api from '@/config'
 // 定义组件 props
 interface Props {
   onLogin: () => void // 登录成功回调函数
+  systemSettings?: any // 新增，接收系统设置
 }
 
 const props = defineProps<Props>()
@@ -193,7 +194,7 @@ const registerRules = {
   confirmPassword: [
     { required: true, message: '请确认密码' },
     {
-      validator: (rule: any, value: string) => {
+      validator: (_rule: any, value: string) => {
         if (!value || registerForm.password === value) {
           return Promise.resolve()
         }
@@ -234,8 +235,13 @@ const onRegisterFinish = async (values: any) => {
   }
 }
 
-// 切换登录/注册模式
+// 注册表单切换逻辑，禁止注册时强制回到登录模式
 const switchMode = () => {
+  if (props.systemSettings?.allowRegister === false && !isLogin.value) {
+    // 禁止切换到注册
+    isLogin.value = true
+    return
+  }
   isLogin.value = !isLogin.value
   // 清空表单数据
   Object.assign(loginForm, { username: '', password: '' })
@@ -293,7 +299,7 @@ const switchMode = () => {
 }
 
 /* 移动端适配 */
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .login-container {
     margin: 20px auto;
     padding: 24px 20px 20px 20px;

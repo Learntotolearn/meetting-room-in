@@ -177,6 +177,7 @@ const deleteRoom = (room: any) => {
   flex-direction: column;
   align-items: stretch;
 }
+/*
 @media (max-width: 950px) {
   .main-card {
     width: 98vw;
@@ -185,7 +186,8 @@ const deleteRoom = (room: any) => {
     border-radius: 12px;
   }
 }
-@media (max-width: 700px) {
+*/
+@media (max-width: 600px) {
   .page-bg {
     width: 100vw;
     min-width: 0;

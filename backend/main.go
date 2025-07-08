@@ -30,6 +30,8 @@ type User struct {
 type SystemSettings struct {
 	ID                    uint `gorm:"primaryKey" json:"id"`
 	AllowUserChangePassword bool `json:"allow_user_change_password"` // 是否允许用户修改密码
+	AutoLogin               bool `json:"autoLogin"` // 新增自动登录字段
+	AllowRegister           bool `json:"allowRegister"` // 新增：允许注册
 }
 
 type Room struct {
@@ -132,6 +134,8 @@ type AdminChangeUserPasswordRequest struct {
 // 更新系统设置请求体
 type UpdateSystemSettingsRequest struct {
 	AllowUserChangePassword bool `json:"allow_user_change_password"`
+	AutoLogin               bool `json:"autoLogin"`
+	AllowRegister           bool `json:"allowRegister"` // 新增
 }
 
 // 新增：管理员修改用户角色请求体
@@ -944,7 +948,7 @@ func getSystemSettingsHandler(c *gin.Context) {
 	if err := db.First(&settings).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// 如果没有设置记录，创建默认设置
-			settings = SystemSettings{AllowUserChangePassword: true}
+			settings = SystemSettings{AllowUserChangePassword: true, AllowRegister: true}
 			db.Create(&settings)
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取系统设置失败"})
@@ -983,6 +987,8 @@ func updateSystemSettingsHandler(c *gin.Context) {
 	}
 
 	settings.AllowUserChangePassword = req.AllowUserChangePassword
+	settings.AutoLogin = req.AutoLogin
+	settings.AllowRegister = req.AllowRegister // 新增
 
 	if err := db.Save(&settings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新系统设置失败"})
@@ -1020,7 +1026,7 @@ func listUsersHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"users": userList})
 }
 
-// @Summary 获取系统设置（公共）
+// @Summary 获取系统设置（公开）
 // @Description 获取系统设置信息（供普通用户使用）
 // @Tags 用户
 // @Produce json
@@ -1031,14 +1037,13 @@ func getPublicSettingsHandler(c *gin.Context) {
 	if err := db.First(&settings).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// 如果没有设置记录，创建默认设置
-			settings = SystemSettings{AllowUserChangePassword: true}
+			settings = SystemSettings{AllowUserChangePassword: true, AllowRegister: true}
 			db.Create(&settings)
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取系统设置失败"})
 			return
 		}
 	}
-
 	c.JSON(http.StatusOK, gin.H{"settings": settings})
 }
 
@@ -1099,7 +1104,7 @@ func main() {
 	// 只在开发环境启用 CORS
 	if os.Getenv("GIN_MODE") != "release" {
 		r.Use(cors.New(cors.Config{
-			AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
@@ -1139,7 +1144,7 @@ func main() {
 				if err := db.First(&settings).Error; err != nil {
 					if err == gorm.ErrRecordNotFound {
 						// 如果没有设置记录，创建默认设置
-						settings = SystemSettings{AllowUserChangePassword: true}
+						settings = SystemSettings{AllowUserChangePassword: true, AllowRegister: true}
 						db.Create(&settings)
 					}
 				}

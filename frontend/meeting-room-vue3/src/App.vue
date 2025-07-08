@@ -1,6 +1,12 @@
 <template>
   <!-- 主应用容器 -->
   <div id="app">
+    <!-- 移动端顶部导航占位栏（仿 example 示例） -->
+    <nav class="mobile-nav" v-if="isMobile">
+      <div class="nav-left"></div>
+      <div class="nav-center"></div>
+      <div class="nav-right"></div>
+    </nav>
     <div v-if="isAuthLoading" class="loading-box">
       <a-spin tip="正在验证登录状态..." />
     </div>
@@ -54,7 +60,7 @@
                   <a-menu-item key="profile" @click="showProfile">
                     <UserOutlined /> 个人信息
                   </a-menu-item>
-                  <a-menu-item key="settings" @click="showSettings">
+                  <a-menu-item v-if="isAdmin" key="settings" @click="showSettings">
                     <SettingOutlined /> 系统设置
                   </a-menu-item>
                   <a-menu-divider />
@@ -65,7 +71,7 @@
               </template>
             </a-dropdown>
             <a-button
-              v-if="isMicroApp"
+              v-if="isMicroAppRef"
               type="text"
               @click="handleCloseApp"
               class="close-btn"
@@ -114,7 +120,7 @@
 
 <script setup lang="ts">
 // 导入 Vue3 组合式 API
-import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   UserOutlined,
@@ -131,12 +137,6 @@ import {
 // 导入 @dootask/tools 工具包
 import {
   isMicroApp,
-  getUserId,
-  getThemeName,
-  getLanguageName,
-  isElectron,
-  isEEUIApp,
-  getSystemInfo,
   getUserInfo,
   appReady,
   closeApp
@@ -165,8 +165,12 @@ const rooms = ref<any[]>([]) // 会议室列表
 const roomsLoading = ref(false) // 会议室加载状态
 const isMobile = ref(window.innerWidth <= 700)
 
+// 新增：系统设置数据
+const systemSettings = ref<any>({})
+
 // 计算属性：是否为微前端环境
-const isMicroAppComputed = computed(() => isMicroApp())
+// const isMicroAppComputed = computed(() => isMicroApp())
+const isMicroAppRef = ref(false)
 
 // 获取会议室列表
 const fetchRooms = async () => {
@@ -179,6 +183,16 @@ const fetchRooms = async () => {
     message.error(e.response?.data?.error || '获取会议室列表失败')
   } finally {
     roomsLoading.value = false
+  }
+}
+
+// 获取系统设置（公开）
+const fetchSystemSettings = async () => {
+  try {
+    const res = await api.get('/settings') // 注意不是 /admin/settings
+    return res.data.settings
+  } catch (e) {
+    return { autoLogin: false }
   }
 }
 
@@ -217,24 +231,28 @@ const checkLoginStatus = async () => {
 // 自动登录处理
 const handleAutoLogin = async (userInfoData: any) => {
   try {
-    console.log('自动登录用户信息:', userInfoData)
-    
-    if (userInfoData && userInfoData.token) {
-      // 保存 token 到本地存储
-      localStorage.setItem('token', userInfoData.token)
-      
-      // 设置用户信息
-      user.value = userInfoData.user || userInfoData
-      isAdmin.value = userInfoData.user?.role === 'admin' || userInfoData.role === 'admin'
-      isLoggedIn.value = true
-      
-      // 获取会议室列表
-      await fetchRooms()
-      
+    // 用 SSO 信息请求后端 SSO 登录接口，获取后端签发的 token
+    const ssoRes = await api.post('/auth/sso', {
+      email: userInfoData.email,
+      nickname: userInfoData.nickname,
+      identity: userInfoData.identity,
+      role: userInfoData.role
+    })
+    const token = ssoRes.data.token
+    if (token) {
+      localStorage.setItem('token', token)
+      console.log('SSO 登录成功，token 已写入 localStorage')
+      setTimeout(() => {
+        console.log('1秒后 localStorage token:', localStorage.getItem('token'))
+      }, 1000)
+      // 登录成功后，拉取用户信息，刷新主界面
+      await checkLoginStatus()
       message.success('自动登录成功')
+    } else {
+      console.warn('SSO 登录未返回 token')
     }
   } catch (e: any) {
-    console.error('自动登录失败:', e)
+    console.error('SSO 自动登录失败:', e)
     message.error('自动登录失败')
   }
 }
@@ -288,39 +306,69 @@ const handleProfileUpdate = (token: string, updatedUser: any) => {
   message.success('个人信息更新成功')
 }
 
+// axios 拦截器部分
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    console.log('[axios] 请求前 token:', token)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    console.error('[axios] 请求拦截器异常:', error)
+    return Promise.reject(error)
+  }
+)
+api.interceptors.response.use(
+  (response) => {
+    console.log('[axios] 响应数据:', response)
+    return response
+  },
+  (error) => {
+    if (error.response) {
+      console.error('[axios] 响应异常:', error.response.status, error.response.data)
+    } else {
+      console.error('[axios] 响应异常:', error)
+    }
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      console.warn('[axios] 401，已清除 localStorage token')
+    }
+    return Promise.reject(error)
+  }
+)
+
+// 工具函数：带超时的 Promise
+function withTimeout(promise: Promise<any>, ms: number) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+  ])
+}
+
 // 组件挂载时的初始化逻辑
+const debugUserInfo = ref<any>(null)
 onMounted(async () => {
   console.log('onMounted 执行')
   console.log('应用初始化开始...')
-  try {
-    // 只在微前端环境下调用 appReady
-    if (isMicroAppComputed.value) {
-      console.log('当前运行在微前端环境中，准备调用 appReady')
-      try {
-        await appReady()
-        console.log('appReady 完成')
-      } catch (e) {
-        console.warn('appReady 执行异常，已忽略：', e)
-      }
-    } else {
-      console.log('当前运行在独立环境中，跳过 appReady')
-    }
-    // 后续自动登录流程
-    if (isMicroAppComputed.value) {
-      const userInfoData = await getUserInfo()
-      console.log('获取到的用户信息:', userInfoData)
-      if (userInfoData) {
-        await handleAutoLogin(userInfoData)
-      } else {
-        console.log('未获取到用户信息，需要手动登录')
-        await checkLoginStatus()
-      }
-    } else {
-      await checkLoginStatus()
-    }
-  } catch (e) {
-    console.error('应用初始化失败:', e)
+  const settings = await fetchSystemSettings()
+  systemSettings.value = settings
+  console.log('fetchSystemSettings 后 systemSettings:', systemSettings.value)
+  isMicroAppRef.value = await isMicroApp()
+  const autoLoginEnabled = !!settings.autoLogin
+  console.log('autoLoginEnabled:', autoLoginEnabled)
+  if (autoLoginEnabled) {
+    // 强制 fallback 到登录页
+    isLoggedIn.value = false
+    isAuthLoading.value = false
+    console.log('强制进入登录页')
+    return
+  } else {
     await checkLoginStatus()
+    isAuthLoading.value = false
+    console.log('非自动登录，checkLoginStatus 结束，isAuthLoading:', isAuthLoading.value, 'isLoggedIn:', isLoggedIn.value)
   }
 })
 
@@ -438,7 +486,7 @@ onUnmounted(() => {
   display: none;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .header-title {
     display: none;
   }
@@ -566,7 +614,7 @@ onUnmounted(() => {
 .menu-icon.active {
   color: #1677ff;
 }
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .top-menu,
   .user-nickname {
     display: none !important;
@@ -599,5 +647,20 @@ onUnmounted(() => {
 }
 :deep(.user-avatar) {
   line-height: 26px !important;
+}
+/* 移动端顶部导航占位栏仿 example 示例 */
+.mobile-nav {
+  display: none;
+  grid-template-columns: 60px 1fr 60px;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+@media (max-width: 600px) {
+  .mobile-nav {
+    display: grid;
+  }
 }
 </style> 

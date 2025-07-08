@@ -84,7 +84,7 @@ const fetchMyBookings = async () => {
 }
 
 const getStatusColor = (status: string) => {
-  const colors = {
+  const colors: Record<string, string> = {
     active: 'green',
     cancelled: 'red',
     completed: 'blue'
@@ -93,7 +93,7 @@ const getStatusColor = (status: string) => {
 }
 
 const getStatusText = (status: string) => {
-  const texts = {
+  const texts: Record<string, string> = {
     active: '有效',
     cancelled: '已取消',
     completed: '已完成'
@@ -137,6 +137,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: stretch;
 }
+/*
 @media (max-width: 950px) {
   .main-card {
     width: 98vw;
@@ -145,7 +146,8 @@ onMounted(() => {
     border-radius: 12px;
   }
 }
-@media (max-width: 700px) {
+*/
+@media (max-width: 600px) {
   .page-bg {
     width: 100vw;
     min-width: 0;
@@ -157,6 +159,22 @@ onMounted(() => {
     max-width: 100vw;
     border-radius: 0;
     padding: 8px 0 8px 0;
+  }
+  .table-responsive,
+  .ant-table-wrapper {
+    width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+  }
+  .ant-table {
+    min-width: 600px !important;
+    box-sizing: border-box !important;
+  }
+  .ant-pagination {
+    width: 100vw !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 .page-header {

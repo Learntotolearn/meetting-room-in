@@ -71,28 +71,6 @@ const fetchAllBookings = async () => {
   }
 }
 
-const getStatusColor = (status: string) => {
-  const colors = {
-    active: 'green',
-    cancelled: 'red',
-    completed: 'blue'
-  }
-  return colors[status] || 'default'
-}
-
-const getStatusText = (status: string) => {
-  const texts = {
-    active: '有效',
-    cancelled: '已取消',
-    completed: '已完成'
-  }
-  return texts[status] || status
-}
-
-const viewBooking = (booking: any) => {
-  message.info(`查看预订详情：${booking.id}`)
-}
-
 const cancelBooking = async (booking: any) => {
   try {
     await api.delete(`/bookings/${booking.id}`)
@@ -156,6 +134,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+/*
 @media (max-width: 950px) {
   .main-card {
     width: 98vw;
@@ -164,7 +143,8 @@ onMounted(() => {
     border-radius: 12px;
   }
 }
-@media (max-width: 700px) {
+*/
+@media (max-width: 600px) {
   .page-bg {
     width: 100vw;
     min-width: 0;
@@ -176,6 +156,22 @@ onMounted(() => {
     max-width: 100vw;
     border-radius: 0;
     padding: 8px 0 8px 0;
+  }
+  .table-responsive,
+  .ant-table-wrapper {
+    width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+  }
+  .ant-table {
+    min-width: 600px !important;
+    box-sizing: border-box !important;
+  }
+  .ant-pagination {
+    width: 100vw !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 .page-header {

@@ -13,6 +13,12 @@
         <a-form-item label="允许注册">
           <a-switch v-model:checked="settingsForm.allowRegister" />
         </a-form-item>
+        <a-form-item label="自动登录">
+          <a-switch v-model:checked="settingsForm.autoLogin" />
+        </a-form-item>
+        <a-form-item label="允许修改密码">
+          <a-switch v-model:checked="settingsForm.allow_user_change_password" />
+        </a-form-item>
         <a-form-item>
           <a-button type="primary" @click="saveSettings" :loading="settingsLoading">
             保存设置
@@ -37,7 +43,7 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <a-space>
-              <a-button type="link" @click="resetPassword(record)">
+              <a-button type="link" @click="showResetPasswordModal(record)">
                 重置密码
               </a-button>
               <a-button type="link" @click="toggleRole(record)">
@@ -48,22 +54,43 @@
         </template>
       </a-table>
     </a-card>
+    <!-- 重置密码弹窗 -->
+    <a-modal
+      v-model:open="resetPasswordModalVisible"
+      :title="`重置用户【${resetPasswordUser?.username || ''}】密码`"
+      :confirmLoading="resetPasswordLoading"
+      @ok="handleResetPassword"
+      @cancel="() => { resetPasswordModalVisible = false }"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="新密码">
+          <a-input-password v-model:value="resetPasswordForm.newPassword" placeholder="请输入新密码（至少6位）" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import api from '@/config'
 
-const activeTab = ref('settings')
 const settingsLoading = ref(false)
 const usersLoading = ref(false)
 const users = ref<any[]>([])
+const resetPasswordModalVisible = ref(false)
+const resetPasswordUser = ref<any>(null)
+const resetPasswordForm = reactive({
+  newPassword: ''
+})
+const resetPasswordLoading = ref(false)
 
 const settingsForm = reactive({
   systemName: '会议室预订系统',
-  allowRegister: true
+  allowRegister: true,
+  autoLogin: false,
+  allow_user_change_password: false // 新增允许修改密码
 })
 
 const userColumns = [
@@ -76,7 +103,7 @@ const userColumns = [
 const fetchSettings = async () => {
   try {
     const res = await api.get('/admin/settings')
-    Object.assign(settingsForm, res.data)
+    Object.assign(settingsForm, res.data.settings)
   } catch (e: any) {
     console.error('获取设置失败:', e)
   }
@@ -97,7 +124,7 @@ const fetchUsers = async () => {
 const saveSettings = async () => {
   try {
     settingsLoading.value = true
-    await api.put('/settings', settingsForm)
+    await api.put('/admin/settings', settingsForm)
     message.success('设置保存成功')
   } catch (e: any) {
     message.error(e.response?.data?.error || '保存设置失败')
@@ -106,12 +133,26 @@ const saveSettings = async () => {
   }
 }
 
-const resetPassword = async (user: any) => {
+const showResetPasswordModal = (user: any) => {
+  resetPasswordUser.value = user
+  resetPasswordForm.newPassword = ''
+  resetPasswordModalVisible.value = true
+}
+
+const handleResetPassword = async () => {
+  if (!resetPasswordForm.newPassword || resetPasswordForm.newPassword.length < 6) {
+    message.error('新密码至少6位')
+    return
+  }
   try {
-    await api.put('/admin/user/password', { user_id: user.id, new_password: '123456' })
-    message.success(`用户 ${user.username} 密码重置成功`)
+    resetPasswordLoading.value = true
+    await api.put('/admin/user/password', { user_id: resetPasswordUser.value.id, new_password: resetPasswordForm.newPassword })
+    message.success(`用户 ${resetPasswordUser.value.username} 密码重置成功`)
+    resetPasswordModalVisible.value = false
   } catch (e: any) {
     message.error(e.response?.data?.error || '重置密码失败')
+  } finally {
+    resetPasswordLoading.value = false
   }
 }
 
@@ -162,6 +203,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: stretch;
 }
+/*
 @media (max-width: 950px) {
   .main-card {
     width: 98vw;
@@ -170,7 +212,8 @@ onMounted(() => {
     border-radius: 12px;
   }
 }
-@media (max-width: 700px) {
+*/
+@media (max-width: 600px) {
   .system-settings-page,
   .main-card,
   .ant-table-wrapper {

@@ -1,12 +1,20 @@
 // API 配置文件
 import axios from 'axios'
 
+// 解决 TypeScript 对 import.meta.env 的类型报错
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_API_BASE_URL: string
+      [key: string]: any
+    }
+  }
+}
+
 // 创建 axios 实例
 const api = axios.create({
-  // 基础 URL，根据环境配置
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? '/api' 
-    : 'http://localhost:8015/api',
+  // 基础 URL，使用 Vite 环境变量
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
